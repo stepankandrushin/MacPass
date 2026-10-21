@@ -1,3 +1,21 @@
+> **This is a fork of [MacPass](https://github.com/MacPass/MacPass), the native macOS KeePass client by Michael Starke and the [MacPass contributors](https://github.com/MacPass/MacPass/graphs/contributors).**
+> Upstream sees few updates, so work continues here on the `main` branch. Each change is also offered upstream as a pull request. All credit for MacPass itself goes to its original authors. This fork is not affiliated with or endorsed by the MacPass project.
+> The fork publishes no releases: [build it from source](#how-to-build), or use the [official releases](https://github.com/MacPass/MacPass/releases), which do not have the changes below.
+
+## What's different in this fork
+
+- **Auto-Type matches long browser window titles.** Chrome hands macOS a shortened title, which can cut out the host name used for matching. MacPass now reads the full title of the focused window through Accessibility. ([MacPass#1339](https://github.com/MacPass/MacPass/pull/1339))
+- **Auto-Type matches the URL of the page in the target window**, which Chrome publishes through Accessibility. A window association like `*example.com*`, an entry URL or an entry host matches without a browser extension that writes the URL into the title. ([MacPass#1339](https://github.com/MacPass/MacPass/pull/1339))
+- **A sound when global Auto-Type finds no match**, also when notification banners are off. Turn it off with *Play sound when Global Autotype finds no match* in Settings → Integration. ([MacPass#1338](https://github.com/MacPass/MacPass/pull/1338))
+- **`scripts/run.sh` builds and starts MacPass with current Xcode** without opening it, working around what Xcode 27 rejects in the upstream build steps. ([MacPass#1337](https://github.com/MacPass/MacPass/pull/1337))
+- **`scripts/build-local.sh`** builds with one signing identity, so the Accessibility and Screen Recording permissions survive rebuilds.
+
+Changes from upstream are merged into `main` as they come.
+
+---
+
+*The original MacPass README follows.*
+
 ### macpassapp.org was dropped due to a fuck-up on my part.
 
 * The website is now available under https://macpass.app
@@ -30,7 +48,7 @@ If you want to contribute by fixing a bug, adding a feature or improving localiz
 
 * Fetch the source of MacPass
 ```bash
-git clone https://github.com/MacPass/MacPass --recursive
+git clone https://github.com/stepankandrushin/MacPass --recursive
 ```
 * Build and run it in one step, without opening Xcode
 ```bash
