@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+  <channel>
+    <title>MacPass (stepankandrushin/MacPass)</title>
+    <link>https://github.com/stepankandrushin/MacPass</link>
+    <item>
+      <title>MacPass 0.8.3.1</title>
+      <pubDate>Thu, 22 Oct 2026 18:01:56 +0000</pubDate>
+      <sparkle:version>26970</sparkle:version>
+      <sparkle:shortVersionString>0.8.3.1</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>12.0</sparkle:minimumSystemVersion>
+      <sparkle:fullReleaseNotesLink>https://github.com/stepankandrushin/MacPass/releases</sparkle:fullReleaseNotesLink>
+      <description><![CDATA[<p>Changes since upstream MacPass at c5ac6448:</p><ul><li>Add scripts/run.sh to build and run MacPass without Xcode</li><li>Add optional sound when global Autotype finds no match</li><li>Fix Auto-Type matching for truncated browser window titles</li><li>Match Auto-Type against the URL of the page in the target window</li><li>Describe the fork in the README</li><li>Add scripts/release.sh for signed releases of the fork</li><li>Sign Sparkle updates with a key made on a1</li><li>Read the release keys from files, not from the keychain</li><li>Notarize with the notarytool-password profile that VoiceHotKey uses</li><li>Build the frameworks with xcodebuild and number releases 0.8.3.N</li></ul>]]></description>
+      <enclosure url="https://github.com/stepankandrushin/MacPass/releases/download/0.8.3.1/MacPass-0.8.3.1.dmg" type="application/octet-stream" sparkle:edSignature="R9UTQoJ9Cw675bzboGtGlC/nOkgflYHgXXPjDvdSNk2pE9vg2sUTzE6VjValuAFgzb2iGwgv0Kdw0QbBqSO2Dg==" length="6425235"/>
+    </item>
+  </channel>
+</rss>
