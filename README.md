@@ -1,6 +1,6 @@
 > **This is a fork of [MacPass](https://github.com/MacPass/MacPass), the native macOS KeePass client by Michael Starke and the [MacPass contributors](https://github.com/MacPass/MacPass/graphs/contributors).**
 > Upstream sees few updates, so work continues here on the `main` branch. Each change is also offered upstream as a pull request. All credit for MacPass itself goes to its original authors. This fork is not affiliated with or endorsed by the MacPass project.
-> The fork publishes no releases: [build it from source](#how-to-build), or use the [official releases](https://github.com/MacPass/MacPass/releases), which do not have the changes below.
+> **[Download the fork from its Releases page](https://github.com/stepankandrushin/MacPass/releases)**: signed with a Developer ID and notarized by Apple, for macOS 12 and later, and it updates itself from there. You can also [build it from source](#how-to-build). The [official releases](https://github.com/MacPass/MacPass/releases) do not have the changes below.
 
 ## What's different in this fork
 
@@ -8,6 +8,7 @@
 - **Auto-Type matches the URL of the page in the target window**, which Chrome publishes through Accessibility. A window association like `*example.com*`, an entry URL or an entry host matches without a browser extension that writes the URL into the title. ([MacPass#1339](https://github.com/MacPass/MacPass/pull/1339))
 - **A sound when global Auto-Type finds no match**, also when notification banners are off. Turn it off with *Play sound when Global Autotype finds no match* in Settings → Integration. ([MacPass#1338](https://github.com/MacPass/MacPass/pull/1338))
 - **`scripts/run.sh` builds and starts MacPass with current Xcode** without opening it, working around what Xcode 27 rejects in the upstream build steps. ([MacPass#1337](https://github.com/MacPass/MacPass/pull/1337))
+- **Its own signed releases, with updates.** `scripts/release.sh` builds, signs and notarizes a DMG, publishes it here and updates the Sparkle feed on GitHub Pages; it follows the release workflow of [orestesgaolin/MacPass](https://github.com/orestesgaolin/MacPass). Versions are numbered 0.8.3.1, 0.8.3.2 and so on. The app has its own bundle ID, `io.github.stepankandrushin.MacPass`, so it keeps its settings apart from the official MacPass and needs Accessibility granted again for Auto-Type. To take your settings along, quit both apps and run `defaults export com.hicknhacksoftware.MacPass - | defaults import io.github.stepankandrushin.MacPass -`.
 - **`scripts/build-local.sh`** builds with one signing identity, so the Accessibility and Screen Recording permissions survive rebuilds.
 
 Changes from upstream are merged into `main` as they come.

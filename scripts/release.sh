@@ -237,8 +237,10 @@ BLOB="$(git hash-object -w "${DERIVED_DATA}/appcast.xml")"
 TREE="$(printf '100644 blob %s\tappcast.xml\n' "${BLOB}" | git mktree)"
 COMMIT="$(git commit-tree "${TREE}" ${PARENT[@]+"${PARENT[@]}"} -m "Appcast for MacPass ${VERSION}")"
 git push --quiet "${REMOTE}" "${COMMIT}:refs/heads/gh-pages"
+# GitHub may turn Pages on by itself for a new gh-pages branch, and then the POST gets HTTP 409.
 if ! gh api "repos/${REPO}/pages" >/dev/null 2>&1; then
-  gh api -X POST "repos/${REPO}/pages" -f 'source[branch]=gh-pages' -f 'source[path]=/' >/dev/null
+  gh api -X POST "repos/${REPO}/pages" -f 'source[branch]=gh-pages' -f 'source[path]=/' >/dev/null 2>&1 \
+    || gh api "repos/${REPO}/pages" >/dev/null || fail "Could not turn on GitHub Pages for gh-pages."
 fi
 echo "Published https://github.com/${REPO}/releases/tag/${VERSION}"
 echo "Sparkle reads $(plutil -extract SUFeedURL raw MacPass/MacPass-Info.plist)"
