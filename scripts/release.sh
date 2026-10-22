@@ -16,7 +16,7 @@
 # - notary credentials: an App Store Connect API key of that team in SECRETS, as notary.p8 and
 #   notary.env with NOTARY_KEY_ID and NOTARY_ISSUER; or, without those files, a keychain profile
 #   stored with an app-specific password of an Apple ID in the team:
-#     xcrun notarytool store-credentials MacPass-notary --apple-id <Apple ID> --team-id 38LK44494Q
+#     xcrun notarytool store-credentials notarytool-password --apple-id <Apple ID> --team-id 38LK44494Q
 # - the private Sparkle key for SUPublicEDKey in MacPass-Info.plist, as SPARKLE_KEY_FILE, the
 #   way Sparkle's generate_keys -x exports it. It is read from the file, never from the keychain,
 #   so that no keychain prompt stops the release.
@@ -24,7 +24,7 @@ set -euo pipefail
 
 SIGNING_IDENTITY="${SIGNING_IDENTITY:-Developer ID Application: EMOJI - FZCO (38LK44494Q)}"
 SECRETS="${SECRETS:-${HOME}/cloud/code/infra/secrets/macpass}"
-NOTARY_PROFILE="${NOTARY_PROFILE:-MacPass-notary}"
+NOTARY_PROFILE="${NOTARY_PROFILE:-notarytool-password}"
 SPARKLE_KEY_FILE="${SPARKLE_KEY_FILE:-${SECRETS}/sparkle.key}"
 REMOTE="${REMOTE:-fork}"
 UPSTREAM="${UPSTREAM:-origin/master}"
