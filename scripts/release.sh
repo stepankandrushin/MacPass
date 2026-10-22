@@ -13,15 +13,19 @@
 #
 # Needs once on the Mac that releases:
 # - the certificate and key of SIGNING_IDENTITY in the login keychain;
-# - notary credentials, stored with an app-specific password of an Apple ID in that team:
+# - notary credentials: an App Store Connect API key of that team in SECRETS, as notary.p8 and
+#   notary.env with NOTARY_KEY_ID and NOTARY_ISSUER; or, without those files, a keychain profile
+#   stored with an app-specific password of an Apple ID in the team:
 #     xcrun notarytool store-credentials MacPass-notary --apple-id <Apple ID> --team-id 38LK44494Q
-# - the private Sparkle key for SUPublicEDKey in MacPass-Info.plist, in the login keychain under
-#   the account SPARKLE_ACCOUNT. Sparkle's generate_keys creates (--account) or imports (-f) it.
+# - the private Sparkle key for SUPublicEDKey in MacPass-Info.plist, as SPARKLE_KEY_FILE, the
+#   way Sparkle's generate_keys -x exports it. It is read from the file, never from the keychain,
+#   so that no keychain prompt stops the release.
 set -euo pipefail
 
 SIGNING_IDENTITY="${SIGNING_IDENTITY:-Developer ID Application: EMOJI - FZCO (38LK44494Q)}"
+SECRETS="${SECRETS:-${HOME}/cloud/code/infra/secrets/macpass}"
 NOTARY_PROFILE="${NOTARY_PROFILE:-MacPass-notary}"
-SPARKLE_ACCOUNT="${SPARKLE_ACCOUNT:-stepankandrushin-MacPass}"
+SPARKLE_KEY_FILE="${SPARKLE_KEY_FILE:-${SECRETS}/sparkle.key}"
 REMOTE="${REMOTE:-fork}"
 UPSTREAM="${UPSTREAM:-origin/master}"
 
@@ -64,8 +68,14 @@ fi
 
 security find-identity -v -p codesigning | grep -F "\"${SIGNING_IDENTITY}\"" >/dev/null \
   || fail "The keychain has no valid identity \"${SIGNING_IDENTITY}\"."
-xcrun notarytool history --keychain-profile "${NOTARY_PROFILE}" >/dev/null 2>&1 \
-  || fail "No notary credentials in the profile ${NOTARY_PROFILE}, see the top of $0."
+if [[ -f "${SECRETS}/notary.env" ]]; then
+  source "${SECRETS}/notary.env"
+  NOTARY_AUTH=(--key "${SECRETS}/notary.p8" --key-id "${NOTARY_KEY_ID}" --issuer "${NOTARY_ISSUER}")
+else
+  NOTARY_AUTH=(--keychain-profile "${NOTARY_PROFILE}")
+fi
+xcrun notarytool history "${NOTARY_AUTH[@]}" >/dev/null 2>&1 \
+  || fail "The notary credentials do not work, see the top of $0."
 if [[ "${PUBLISH}" == 1 ]]; then
   gh auth status >/dev/null 2>&1 || fail "Log in to GitHub first: gh auth login"
 fi
@@ -79,8 +89,13 @@ if [[ ! -x "${SPARKLE_TOOLS}/sign_update" ]]; then
     | tar -xJf - -C "build/sparkle-${SPARKLE_VERSION}" ./bin
 fi
 PUBLIC_KEY="$(plutil -extract SUPublicEDKey raw MacPass/MacPass-Info.plist)"
-[[ "$("${SPARKLE_TOOLS}/generate_keys" --account "${SPARKLE_ACCOUNT}" -p 2>/dev/null)" == "${PUBLIC_KEY}" ]] \
-  || fail "The keychain has no Sparkle key for SUPublicEDKey under the account ${SPARKLE_ACCOUNT}."
+[[ -r "${SPARKLE_KEY_FILE}" ]] || fail "The Sparkle key ${SPARKLE_KEY_FILE} is missing."
+# The file holds the base64 seed of the Ed25519 key (32 bytes, or 96 in older exports).
+KEY_PUBLIC="$(xcrun swift -e 'import CryptoKit; import Foundation
+let seed = Data(base64Encoded: readLine() ?? "")?.prefix(32) ?? Data()
+print((try? Curve25519.Signing.PrivateKey(rawRepresentation: seed))?.publicKey.rawRepresentation.base64EncodedString() ?? "")' \
+  < "${SPARKLE_KEY_FILE}")"
+[[ "${KEY_PUBLIC}" == "${PUBLIC_KEY}" ]] || fail "${SPARKLE_KEY_FILE} is not the key of SUPublicEDKey."
 
 source "${MY_FOLDER}/build-dependencies.sh"
 
@@ -132,12 +147,12 @@ codesign --verify --deep --strict "${APP}"
 notarize() {
   echo "Notarizing $(basename "$1"), this takes a few minutes"
   local RESULT ID
-  RESULT="$(xcrun notarytool submit "$1" --keychain-profile "${NOTARY_PROFILE}" --wait --output-format json)" || true
+  RESULT="$(xcrun notarytool submit "$1" "${NOTARY_AUTH[@]}" --wait --output-format json)" || true
   if [[ "$(plutil -extract status raw - <<< "${RESULT}" 2>/dev/null)" != Accepted ]]; then
     echo "${RESULT}" >&2
     ID="$(plutil -extract id raw - <<< "${RESULT}" 2>/dev/null)" || true
     if [[ -n "${ID}" ]]; then
-      xcrun notarytool log "${ID}" --keychain-profile "${NOTARY_PROFILE}" >&2 || true
+      xcrun notarytool log "${ID}" "${NOTARY_AUTH[@]}" >&2 || true
     fi
     fail "Apple did not notarize $1."
   fi
@@ -178,7 +193,7 @@ SIGNER="${SIGNING_IDENTITY#Developer ID Application: }"
   echo "Signed with the Developer ID of ${SIGNER} and notarized by Apple. Needs macOS ${MINIMUM_SYSTEM} or later."
 } > "${DERIVED_DATA}/notes.md"
 
-ED_SIGNATURE="$("${SPARKLE_TOOLS}/sign_update" --account "${SPARKLE_ACCOUNT}" "${DMG}")"
+ED_SIGNATURE="$("${SPARKLE_TOOLS}/sign_update" --ed-key-file "${SPARKLE_KEY_FILE}" "${DMG}")"
 ESCAPED_CHANGES="$(sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' -e 's|.*|<li>&</li>|' <<< "${CHANGES}" | tr -d '\n')"
 cat > "${DERIVED_DATA}/appcast.xml" <<EOF
 <?xml version="1.0" encoding="utf-8"?>
