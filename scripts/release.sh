@@ -4,8 +4,9 @@
 #
 #   scripts/release.sh [--no-publish] [version]
 #
-# The version defaults to the upstream version of the project with the next -fork.N suffix, for
-# example 0.8.2-fork.1, and becomes the tag. With --no-publish the script stops at the notarized DMG
+# The version defaults to FORK_BASE with the next fourth number, for example 0.8.3.1, and becomes
+# the tag. FORK_BASE is one above the upstream release the fork builds on: raise it after merging a
+# newer upstream release. Sparkle compares the build number, so the scheme can change any time. With --no-publish the script stops at the notarized DMG
 # in build/release and tags nothing.
 #
 # This follows the release workflow of https://github.com/orestesgaolin/MacPass
@@ -26,6 +27,7 @@ SIGNING_IDENTITY="${SIGNING_IDENTITY:-Developer ID Application: EMOJI - FZCO (38
 SECRETS="${SECRETS:-${HOME}/cloud/code/infra/secrets/macpass}"
 NOTARY_PROFILE="${NOTARY_PROFILE:-notarytool-password}"
 SPARKLE_KEY_FILE="${SPARKLE_KEY_FILE:-${SECRETS}/sparkle.key}"
+FORK_BASE="${FORK_BASE:-0.8.3}"
 REMOTE="${REMOTE:-fork}"
 UPSTREAM="${UPSTREAM:-origin/master}"
 
@@ -58,9 +60,8 @@ if [[ "${PUBLISH}" == 1 && "$(git rev-parse HEAD)" != "$(git rev-parse "${REMOTE
 fi
 
 if [[ -z "${VERSION}" ]]; then
-  BASE_VERSION="$(sed -n 's/.*CURRENT_PROJECT_VERSION = \([0-9.]*\);/\1/p' MacPass.xcodeproj/project.pbxproj | head -1)"
-  LAST_NUMBER="$(git tag -l "${BASE_VERSION}-fork.*" | sed 's/.*-fork\.//' | sort -n | tail -1)"
-  VERSION="${BASE_VERSION}-fork.$(( ${LAST_NUMBER:-0} + 1 ))"
+  LAST_NUMBER="$(git tag -l "${FORK_BASE}.*" | sed "s/^${FORK_BASE}\.//" | grep -E '^[0-9]+$' | sort -n | tail -1 || true)"
+  VERSION="${FORK_BASE}.$(( ${LAST_NUMBER:-0} + 1 ))"
 fi
 if git rev-parse -q --verify "refs/tags/${VERSION}" >/dev/null; then
   fail "The tag ${VERSION} exists already."
@@ -175,7 +176,7 @@ spctl --assess --type open --context context:primary-signature "${DMG}"
 echo "Built ${DMG}"
 
 # Release notes: the commits since the previous release of the fork, or since upstream for the first one.
-PREVIOUS_TAG="$(git tag -l '*-fork.*' --merged HEAD --sort=-v:refname | head -1)"
+PREVIOUS_TAG="$(git tag -l '*.*.*.*' --merged HEAD --sort=-v:refname | head -1)"
 if [[ -n "${PREVIOUS_TAG}" ]]; then
   SINCE="${PREVIOUS_TAG}"
   SINCE_NAME="${PREVIOUS_TAG}"
@@ -223,7 +224,7 @@ fi
 
 git tag -a "${VERSION}" -m "MacPass ${VERSION}"
 git push --quiet "${REMOTE}" "refs/tags/${VERSION}"
-gh release create "${VERSION}" "${DMG}" --repo "${REPO}" --verify-tag --title "MacPass ${VERSION}" \
+gh release create "${VERSION}" "${DMG}" --repo "${REPO}" --verify-tag --title "MacPass ${VERSION} (${BUILD_NUMBER})" \
   --notes-file "${DERIVED_DATA}/notes.md"
 
 # The appcast replaces the previous one on gh-pages, which holds nothing else; Sparkle only needs the

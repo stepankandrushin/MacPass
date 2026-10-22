@@ -47,6 +47,26 @@ if ! cmp -s Cartfile.resolved "${BUILT_FROM}"; then
   sed -i '' -e 's|^@import Darwin\.Availability;|#import <Availability.h>|' -e 's|^@import Darwin\.C\.xlocale;|#import <xlocale.h>|' \
     Carthage/Checkouts/TransformerKit/Sources/*.[hm]
 
-  carthage build --platform macOS --cache-builds
+  # carthage build fails with Xcode 27: it looks for each archived framework under a path that Xcode
+  # no longer writes. Carthage still fetches the Sparkle binary; the other frameworks are built with
+  # xcodebuild, as https://github.com/orestesgaolin/MacPass does in .github/workflows/release.yml.
+  carthage build --platform macOS Sparkle
+  build_framework() {
+    local NAME="$1"
+    shift
+    echo "Building ${NAME}.framework"
+    rm -rf "build/dependencies/${NAME}" "Carthage/Build/Mac/${NAME}.framework"
+    xcodebuild build "$@" -configuration Release -quiet ARCHS="arm64 x86_64" ONLY_ACTIVE_ARCH=NO SDKROOT=macosx \
+      CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" -derivedDataPath "build/dependencies/${NAME}"
+    cp -R "build/dependencies/${NAME}/Build/Products/Release/${NAME}.framework" Carthage/Build/Mac/
+  }
+  mkdir -p Carthage/Build/Mac
+  build_framework HNHUi -project Carthage/Checkouts/HNHUi/HNHUi.xcodeproj -scheme HNHUi
+  build_framework KissXML -project Carthage/Checkouts/KissXML/KissXML.xcodeproj -scheme "KissXML (macOS)"
+  # KeePassKit looks for KissXML in its own Carthage/Build/Mac.
+  mkdir -p Carthage/Checkouts/KeePassKit/Carthage/Build/Mac
+  ln -sfn "${PWD}/Carthage/Build/Mac/KissXML.framework" Carthage/Checkouts/KeePassKit/Carthage/Build/Mac/KissXML.framework
+  build_framework KeePassKit -project Carthage/Checkouts/KeePassKit/KeePassKit.xcodeproj -scheme "KeePassKit macOS"
+  build_framework TransformerKit -workspace Carthage/Checkouts/TransformerKit/TransformerKit.xcworkspace -scheme "TransformerKit macOS"
   cp Cartfile.resolved "${BUILT_FROM}"
 fi
