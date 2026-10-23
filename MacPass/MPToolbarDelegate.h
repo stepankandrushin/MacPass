@@ -42,5 +42,6 @@ APPKIT_EXTERN NSString *const MPToolbarItemIdentifierAutotype;
 @property (weak) NSToolbar *toolbar;
 
 - (void)registerNotificationsForDocument:(MPDocument *)document;
+- (void)registerNotificationsForWindow:(NSWindow *)window;
 
 @end

@@ -156,6 +156,7 @@ typedef void (^MPPasswordChangedBlock)(BOOL didChangePassword);
   self.toolbar.delegate = self.toolbarDelegate;
   self.window.toolbar = self.toolbar;
   self.toolbarDelegate.toolbar = self.toolbar;
+  [self.toolbarDelegate registerNotificationsForWindow:self.window];
   
   if(document.encrypted) {
     [self showPasswordInput];

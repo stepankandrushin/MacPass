@@ -62,8 +62,16 @@ NSString *const MPToolbarItemIdentifierAutotype     = @"TOOLBAR_AUTOTYPE";
 @property (strong) NSArray *defaultToolbarIdentifiers;
 @property (strong) NSDictionary *toolbarImages;
 @property (weak) NSSearchField *searchField;
+@property (strong) NSLayoutConstraint *searchFieldWidthConstraint;
+@property CGFloat lastWindowWidth;
 
 @end
+
+static const CGFloat MPSearchFieldMinWidth = 140;
+/* what is left of a flexible space next to the search field */
+static const CGFloat MPSearchFieldFlexibleSpaceWidth = 8;
+/* measuring again after a change settles in one pass, the limit only guards against a loop */
+static const NSUInteger MPSearchFieldWidthPasses = 4;
 
 @implementation MPToolbarDelegate
 
@@ -179,11 +187,16 @@ NSString *const MPToolbarItemIdentifierAutotype     = @"TOOLBAR_AUTOTYPE";
       item.visibilityPriority = NSToolbarItemVisibilityPriorityHigh;
       
       if(@available(macOS 11, *)) {
-        // do not call any sizing API
+        /* Newer toolbars stop a resizable search field at about 330 pt, short of the Lock button.
+         They keep a width set by a constraint, which -_updateSearchFieldWidthWithPasses: fits to the room around the field */
+        NSLayoutConstraint *width = [searchField.widthAnchor constraintEqualToConstant:MPSearchFieldMinWidth];
+        width.priority = NSLayoutPriorityDefaultHigh;
+        width.active = YES;
+        self.searchFieldWidthConstraint = width;
       }
       else {
         /* Use default size base on documentation */
-        item.minSize = NSMakeSize(140, 32);
+        item.minSize = NSMakeSize(MPSearchFieldMinWidth, 32);
         item.maxSize = NSMakeSize(400, 32);
       }
       
@@ -242,6 +255,91 @@ NSString *const MPToolbarItemIdentifierAutotype     = @"TOOLBAR_AUTOTYPE";
 - (void)registerNotificationsForDocument:(MPDocument *)document {
   [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(_didExitSearch:) name:MPDocumentDidExitSearchNotification object:document];
   [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(_didEnterSearch:) name:MPDocumentDidEnterSearchNotification object:document];
+}
+
+- (void)registerNotificationsForWindow:(NSWindow *)window {
+  self.lastWindowWidth = NSWidth(window.frame);
+  [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(_windowDidResize:) name:NSWindowDidResizeNotification object:window];
+  [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(_toolbarDidChangeItems:) name:NSToolbarWillAddItemNotification object:self.toolbar];
+  [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(_toolbarDidChangeItems:) name:NSToolbarDidRemoveItemNotification object:self.toolbar];
+  [self _scheduleSearchFieldWidthUpdate];
+}
+
+#pragma mark - Search field width
+
+- (void)_windowDidResize:(NSNotification *)notification {
+  NSWindow *window = notification.object;
+  CGFloat width = NSWidth(window.frame);
+  /* shrink the field before the toolbar lays out, else it moves items into the overflow menu */
+  if(width < self.lastWindowWidth) {
+    NSLayoutConstraint *fieldWidth = self.searchFieldWidthConstraint;
+    fieldWidth.constant = MAX(MPSearchFieldMinWidth, fieldWidth.constant - (self.lastWindowWidth - width));
+  }
+  self.lastWindowWidth = width;
+  [self _scheduleSearchFieldWidthUpdate];
+}
+
+- (void)_toolbarDidChangeItems:(NSNotification *)notification {
+  [self _scheduleSearchFieldWidthUpdate];
+}
+
+- (void)_scheduleSearchFieldWidthUpdate {
+  [self _scheduleSearchFieldWidthUpdateWithPasses:MPSearchFieldWidthPasses];
+}
+
+- (void)_scheduleSearchFieldWidthUpdateWithPasses:(NSUInteger)passes {
+  /* run after the toolbar has laid out its items */
+  __weak MPToolbarDelegate *welf = self;
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [welf _updateSearchFieldWidthWithPasses:passes];
+  });
+}
+
+/* Let the search field take the room of the flexible spaces around it, from the item before it to the one after it (Lock by default) */
+- (void)_updateSearchFieldWidthWithPasses:(NSUInteger)passes {
+  NSLayoutConstraint *fieldWidth = self.searchFieldWidthConstraint;
+  NSView *searchViewer = self.searchField.superview;
+  NSWindow *window = searchViewer.window;
+  if(!fieldWidth || !window) {
+    return;
+  }
+  [window layoutIfNeeded];
+  NSArray<NSToolbarItem *> *items = self.toolbar.items;
+  NSUInteger searchIndex = [items indexOfObjectPassingTest:^BOOL(NSToolbarItem *item, NSUInteger idx, BOOL *stop) {
+    return [item.itemIdentifier isEqualToString:MPToolbarItemIdentifierSearch];
+  }];
+  if(searchIndex == NSNotFound) {
+    return;
+  }
+  /* the items with a view on either side, and the flexible spaces between them and the field */
+  NSView *leftViewer = nil;
+  NSView *rightViewer = nil;
+  NSUInteger flexibleSpaces = 0;
+  for(NSInteger index = (NSInteger)searchIndex - 1; index >= 0 && !leftViewer; index--) {
+    leftViewer = items[index].view.superview;
+    flexibleSpaces += [items[index].itemIdentifier isEqualToString:NSToolbarFlexibleSpaceItemIdentifier];
+  }
+  for(NSUInteger index = searchIndex + 1; index < items.count && !rightViewer; index++) {
+    rightViewer = items[index].view.superview;
+    flexibleSpaces += [items[index].itemIdentifier isEqualToString:NSToolbarFlexibleSpaceItemIdentifier];
+  }
+  if(flexibleSpaces == 0) {
+    return; // without flexible spaces the toolbar gives the room elsewhere
+  }
+  if(leftViewer.window != window || rightViewer.window != window) {
+    return; // no item on that side, or it is in the overflow menu
+  }
+  CGFloat left = NSMaxX([leftViewer convertRect:leftViewer.bounds toView:nil]);
+  CGFloat right = NSMinX([rightViewer convertRect:rightViewer.bounds toView:nil]);
+  CGFloat padding = NSWidth(searchViewer.frame) - NSWidth(self.searchField.frame);
+  CGFloat width = MAX(MPSearchFieldMinWidth, floor(right - left - padding - flexibleSpaces * MPSearchFieldFlexibleSpaceWidth));
+  if(fabs(width - fieldWidth.constant) >= 1) {
+    fieldWidth.constant = width;
+    /* the new width can move the items around it, measure again */
+    if(passes > 1) {
+      [self _scheduleSearchFieldWidthUpdateWithPasses:passes - 1];
+    }
+  }
 }
 
 #pragma mark - NSSearchFieldDelegate
