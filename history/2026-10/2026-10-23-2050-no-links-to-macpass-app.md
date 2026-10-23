@@ -23,4 +23,4 @@ built app's bundled plugins.json emptied, Browse Available Plugins still listed 
 list came from the new URL. Afterwards the bundled file was put back and the setting back to off, as it was.
 
 Still pointing at macpass.app: nothing. The README's quoted upstream notice names it as plain text now, not a link; the GitHub
-repository's About website is still http://macpass.app/ (a repo setting, left for the owner to decide).
+repository's About website was http://macpass.app/ and was cleared (gh repo edit --homepage "").
