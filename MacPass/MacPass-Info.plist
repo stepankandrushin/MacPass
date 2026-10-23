@@ -68,7 +68,7 @@
 	<key>LSMinimumSystemVersion</key>
 	<string>${MACOSX_DEPLOYMENT_TARGET}</string>
 	<key>MPHelpURL</key>
-	<string>https://github.com/MacPass/MacPass</string>
+	<string>https://github.com/stepankandrushin/MacPass</string>
 	<key>MPPluginRepositoryURL</key>
 	<string>https://macpass.app/data/plugins.json</string>
 	<key>NSAppleEventsUsageDescription</key>
