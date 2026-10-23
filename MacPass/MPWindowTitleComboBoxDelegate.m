@@ -22,6 +22,8 @@
 
 #import "MPWindowTitleComboBoxDelegate.h"
 
+#import <ApplicationServices/ApplicationServices.h>
+
 @implementation MPWindowTitleComboBoxDelegate
 
 - (void)comboBoxWillPopUp:(NSNotification *)notification {
@@ -35,23 +37,33 @@
 }
 
 - (NSArray *)_currentWindowTitles {
-  static NSArray *ownerSkipList;
-  static dispatch_once_t onceToken;
-  dispatch_once(&onceToken, ^{
-    ownerSkipList = @[ @"SystemUIServer", @"Window Server", @"Dock" ];
-  });
-  NSArray *currentWindows = CFBridgingRelease(CGWindowListCopyWindowInfo(kCGWindowListExcludeDesktopElements, kCGNullWindowID));
-  NSMutableArray *windowTitles = [[NSMutableArray alloc] initWithCapacity:MAX(1,currentWindows.count)];
-  for(NSDictionary *windowDict in currentWindows) {
-    NSString *windowName = windowDict[(NSString *)kCGWindowName];
-    if(windowName.length <= 0) {
-      continue; // No title, skip
-    }
-    NSString *ownerName = windowDict[(NSString *)kCGWindowOwnerName];
-    if([ownerSkipList containsObject:ownerName]) {
+  /* Window titles of other apps come from Accessibility: the window server only hands them
+   to apps with the Screen Recording permission, which MacPass does not ask for */
+  NSMutableArray *windowTitles = [[NSMutableArray alloc] init];
+  if(!AXIsProcessTrusted()) {
+    return windowTitles;
+  }
+  for(NSRunningApplication *application in NSWorkspace.sharedWorkspace.runningApplications) {
+    if(application.activationPolicy != NSApplicationActivationPolicyRegular) {
       continue; // We do not want to insert some system windows (Dock, Menubars)
     }
-    [windowTitles addObject:windowDict[(NSString *)kCGWindowName]];
+    AXUIElementRef applicationElement = AXUIElementCreateApplication(application.processIdentifier);
+    // An unresponsive app must not stall the popup
+    AXUIElementSetMessagingTimeout(applicationElement, 0.2);
+    CFTypeRef windows = NULL;
+    if(AXUIElementCopyAttributeValue(applicationElement, kAXWindowsAttribute, &windows) == kAXErrorSuccess) {
+      for(id window in (__bridge NSArray *)windows) {
+        CFTypeRef title = NULL;
+        if(AXUIElementCopyAttributeValue((__bridge AXUIElementRef)window, kAXTitleAttribute, &title) == kAXErrorSuccess) {
+          NSString *windowTitle = CFBridgingRelease(title);
+          if([windowTitle isKindOfClass:NSString.class] && windowTitle.length > 0) {
+            [windowTitles addObject:windowTitle];
+          }
+        }
+      }
+      CFRelease(windows);
+    }
+    CFRelease(applicationElement);
   }
   return windowTitles;
 }

@@ -6,10 +6,11 @@
 
 - **Auto-Type matches long browser window titles.** Chrome hands macOS a shortened title, which can cut out the host name used for matching. MacPass now reads the full title of the focused window through Accessibility. ([MacPass#1339](https://github.com/MacPass/MacPass/pull/1339))
 - **Auto-Type matches the URL of the page in the target window**, which Chrome publishes through Accessibility. A window association like `*example.com*`, an entry URL or an entry host matches without a browser extension that writes the URL into the title. ([MacPass#1339](https://github.com/MacPass/MacPass/pull/1339))
+- **Auto-Type needs only the Accessibility permission, not Screen Recording.** macOS hides other apps' window titles from the window server without Screen Recording, so upstream MacPass asks for it; the fork takes the target window by z-order and its title and URL from Accessibility, and the Autotype Doctor no longer asks for Screen Recording.
 - **A sound when global Auto-Type finds no match**, also when notification banners are off. Turn it off with *Play sound when Global Autotype finds no match* in Settings → Integration. ([MacPass#1338](https://github.com/MacPass/MacPass/pull/1338))
 - **`scripts/run.sh` builds and starts MacPass with current Xcode** without opening it, working around what Xcode 27 rejects in the upstream build steps. ([MacPass#1337](https://github.com/MacPass/MacPass/pull/1337))
 - **Its own signed releases, with updates.** `scripts/release.sh` builds, signs and notarizes a DMG, publishes it here and updates the Sparkle feed on GitHub Pages; it follows the release workflow of [orestesgaolin/MacPass](https://github.com/orestesgaolin/MacPass). Versions are numbered 0.8.3.1, 0.8.3.2 and so on. The app has its own bundle ID, `io.github.stepankandrushin.MacPass`, so it keeps its settings apart from the official MacPass and needs Accessibility granted again for Auto-Type. To take your settings along, quit both apps and run `defaults export com.hicknhacksoftware.MacPass - | defaults import io.github.stepankandrushin.MacPass -`.
-- **`scripts/build-local.sh`** builds with one signing identity, so the Accessibility and Screen Recording permissions survive rebuilds.
+- **`scripts/build-local.sh`** builds with one signing identity, so the Accessibility permission survives rebuilds.
 
 Changes from upstream are merged into `main` as they come.
 
@@ -70,10 +71,10 @@ After that you can build and run in Xcode. The following command will build and 
 
     xcodebuild -scheme MacPass -target MacPass -configuration Release CODE_SIGNING_REQUIRED=NO NO_SPARKLE=NO_SPARKLE
 
-For local development with persistent Accessibility and Screen Recording permissions,
+For local development with a persistent Accessibility permission,
 use the same Apple Development signing identity for every build. Ad hoc signing
 (`CODE_SIGN_IDENTITY=-`) ties the app's identity to each build's hash and can invalidate
-those permissions after a rebuild. List available identities with
+that permission after a rebuild. List available identities with
 `security find-identity -v -p codesigning`, then create the ignored file
 `.local-build.xcconfig` in the repository root:
 

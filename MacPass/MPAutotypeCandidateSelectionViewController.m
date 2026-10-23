@@ -116,6 +116,10 @@
   
   NSRunningApplication *targetApplication = [NSRunningApplication runningApplicationWithProcessIdentifier:self.environment.pid];
   CGImageRef windowGrab = CGWindowListCreateImage(CGRectNull, kCGWindowListOptionIncludingWindow, self.environment.windowId, kCGWindowImageDefault | kCGWindowImageBestResolution);
+  /* Without Screen Recording permission there may be no image of the target window */
+  if(!windowGrab) {
+    return targetApplication.icon;
+  }
   NSImage *windowImage = [[NSImage alloc] initWithCGImage:windowGrab size:NSZeroSize];
   CFRelease(windowGrab);
   

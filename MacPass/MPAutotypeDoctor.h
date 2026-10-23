@@ -16,12 +16,9 @@ NS_ASSUME_NONNULL_BEGIN
 @property (class, readonly, strong) MPAutotypeDoctor *defaultDoctor;
 @property (nonatomic, readonly) BOOL hasNecessaryAutotypePermissions; // MacPass has all the permissions it needs to run autotype on the current system
 
-- (BOOL)hasScreenRecordingPermissions:(NSError *__autoreleasing*)error;
 - (BOOL)hasAccessibiltyPermissions:(NSError *__autoreleasing*)error;
 
 - (void)runChecksAndPresentResults;
-- (void)openScreenRecordingPreferences;
-- (void)requestScreenRecordingPermission;
 - (void)openAccessibiltyPreferences;
 - (void)openAutomationPreferences;
 

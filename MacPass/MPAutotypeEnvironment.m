@@ -55,35 +55,4 @@
   return NSRunningApplication.currentApplication.processIdentifier == _pid;
 }
 
-- (NSDictionary *)_infoDictionaryForApplication:(NSRunningApplication *)application {
-  NSArray *currentWindows = CFBridgingRelease(CGWindowListCopyWindowInfo(kCGWindowListExcludeDesktopElements, kCGNullWindowID));
-  NSArray *windowNumbers = [NSWindow windowNumbersWithOptions:NSWindowNumberListAllApplications];
-  NSUInteger minZIndex = NSNotFound;
-  NSDictionary *infoDict = nil;
-  for(NSDictionary *windowDict in currentWindows) {
-    NSString *windowTitle = windowDict[(NSString *)kCGWindowName];
-    if(windowTitle.length <= 0) {
-      continue;
-    }
-    NSNumber *processId = windowDict[(NSString *)kCGWindowOwnerPID];
-    if(processId && [processId isEqualToNumber:@(application.processIdentifier)]) {
-      
-      NSNumber *number = (NSNumber *)windowDict[(NSString *)kCGWindowNumber];
-      NSUInteger zIndex = [windowNumbers indexOfObject:number];
-      if(zIndex < minZIndex) {
-        minZIndex = zIndex;
-        infoDict = @{
-          MPWindowTitleKey: windowTitle,
-          MPProcessIdentifierKey : processId
-        };
-      }
-    }
-  }
-  if(currentWindows.count > 0 && infoDict.count == 0) {
-    // show some information about not being able to determine any windows
-    NSLog(@"Unable to retrieve any window names. If you encounter this issue you might be running 10.15 and MacPass has no permission for screen recording.");
-  }
-  return infoDict;
-}
-
 @end
