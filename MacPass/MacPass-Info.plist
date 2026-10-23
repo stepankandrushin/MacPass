@@ -70,7 +70,7 @@
 	<key>MPHelpURL</key>
 	<string>https://github.com/stepankandrushin/MacPass</string>
 	<key>MPPluginRepositoryURL</key>
-	<string>https://macpass.app/data/plugins.json</string>
+	<string>https://raw.githubusercontent.com/stepankandrushin/MacPass/main/MacPass/Resources/plugins.json</string>
 	<key>NSAppleEventsUsageDescription</key>
 	<string>MacPass might use AppleEvents to perform Autotype functionality</string>
 	<key>NSDesktopFolderUsageDescription</key>

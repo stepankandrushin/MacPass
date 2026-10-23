@@ -41,7 +41,7 @@
 "ALERT_ASK_FOR_PLUGIN_REPOSITORY_ALLOW_DOWNLOAD" = "Actualizar las definiciones online";
 
 /* Informative text displayed on the alert that shows up when MacPass asks for permssion to download the plugin repository JSON file */
-"ALERT_ASK_FOR_PLUGIN_REPOSITORY_CONNECTION_PERMISSION_INFORMATIVE_TEXT" = "Las definiciones de los plugin están almacenadas online en https://macpass.app. A MacPass le gustaría descargar los archivos para asegurar que los datos están actualizados";
+"ALERT_ASK_FOR_PLUGIN_REPOSITORY_CONNECTION_PERMISSION_INFORMATIVE_TEXT" = "Las definiciones de los plugin están almacenadas online en https://github.com/stepankandrushin/MacPass. A MacPass le gustaría descargar los archivos para asegurar que los datos están actualizados";
 
 /* Message displayed on the alert that asks for permission to download the plugin repository JSON file */
 "ALERT_ASK_FOR_PLUGIN_REPOSITORY_CONNECTION_PERMISSION_MESSAGE" = "A MacPass le gustaría comprobar las actualizaciones de las definiciones de los plugin online";

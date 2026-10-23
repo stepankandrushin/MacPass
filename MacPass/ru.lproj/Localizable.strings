@@ -41,7 +41,7 @@
 "ALERT_ASK_FOR_PLUGIN_REPOSITORY_ALLOW_DOWNLOAD" = "Разрешить обновление";
 
 /* Informative text displayed on the alert that shows up when MacPass asks for permssion to download the plugin repository JSON file */
-"ALERT_ASK_FOR_PLUGIN_REPOSITORY_CONNECTION_PERMISSION_INFORMATIVE_TEXT" = "Информация о плагинах находится на сайте https://macpass.app. MacPass скачает файлы чтобы проверить наличие обновлений.";
+"ALERT_ASK_FOR_PLUGIN_REPOSITORY_CONNECTION_PERMISSION_INFORMATIVE_TEXT" = "Информация о плагинах находится на сайте https://github.com/stepankandrushin/MacPass. MacPass скачает файлы чтобы проверить наличие обновлений.";
 
 /* Message displayed on the alert that asks for permission to download the plugin repository JSON file */
 "ALERT_ASK_FOR_PLUGIN_REPOSITORY_CONNECTION_PERMISSION_MESSAGE" = "Проверять обновления плагинов?";

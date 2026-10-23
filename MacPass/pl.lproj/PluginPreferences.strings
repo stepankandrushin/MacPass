@@ -7,8 +7,8 @@
 /* Class = "NSTextFieldCell"; title = "Table View Cell"; ObjectID = "fug-79-n9g"; */
 "fug-79-n9g.title" = "Table View Cell";
 
-/* Class = "NSTextFieldCell"; title = "If enabled, a remote connection is established to macpass.app"; ObjectID = "i3S-9b-Bpf"; */
-"i3S-9b-Bpf.title" = "Po włączeniu nawiązywane jest zdalne połączenie z macpass.app";
+/* Class = "NSTextFieldCell"; title = "If enabled, a remote connection is established to GitHub"; ObjectID = "i3S-9b-Bpf"; */
+"i3S-9b-Bpf.title" = "Po włączeniu nawiązywane jest zdalne połączenie z GitHub";
 
 /* Class = "NSTextFieldCell"; title = "Plugin Settings Info"; ObjectID = "OOr-SW-jZb"; */
 "OOr-SW-jZb.title" = "Informacje o Ustawieniach Wtyczek";

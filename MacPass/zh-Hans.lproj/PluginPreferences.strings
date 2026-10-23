@@ -7,8 +7,8 @@
 /* Class = "NSTextFieldCell"; title = "Table View Cell"; ObjectID = "fug-79-n9g"; */
 "fug-79-n9g.title" = "Table View Cell";
 
-/* Class = "NSTextFieldCell"; title = "If enabled, a remote connection is established to macpass.app"; ObjectID = "i3S-9b-Bpf"; */
-"i3S-9b-Bpf.title" = "如果允许，将建立同 macpass.app 的远程连接";
+/* Class = "NSTextFieldCell"; title = "If enabled, a remote connection is established to GitHub"; ObjectID = "i3S-9b-Bpf"; */
+"i3S-9b-Bpf.title" = "如果允许，将建立同 GitHub 的远程连接";
 
 /* Class = "NSButtonCell"; title = "Browse Available Plugins…"; ObjectID = "sqO-8H-n1y"; */
 "sqO-8H-n1y.title" = "浏览可用插件...";

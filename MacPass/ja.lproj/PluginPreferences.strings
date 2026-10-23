@@ -8,8 +8,8 @@
 /* Class = "NSTextFieldCell"; title = "Plugin Settings Info"; ObjectID = "OOr-SW-jZb"; */
 "OOr-SW-jZb.title" = "プラグイン設定の情報";
 
-/* Class = "NSTextFieldCell"; title = "If enabled, a remote connection is established to macpass.app"; ObjectID = "i3S-9b-Bpf"; */
-"i3S-9b-Bpf.title" = "有効にすると、リモート接続は macpass.app に確立されます";
+/* Class = "NSTextFieldCell"; title = "If enabled, a remote connection is established to GitHub"; ObjectID = "i3S-9b-Bpf"; */
+"i3S-9b-Bpf.title" = "有効にすると、リモート接続は GitHub に確立されます";
 
 /* Class = "NSButtonCell"; title = "Browse Available Plugins…"; ObjectID = "sqO-8H-n1y"; */
 "sqO-8H-n1y.title" = "有効なプラグインをブラウズ…";

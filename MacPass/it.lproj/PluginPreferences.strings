@@ -13,8 +13,8 @@
 /* Class = "NSBox"; title = "Box"; ObjectID = "vBs-Ga-aq0"; */
 "vBs-Ga-aq0.title" = "Box";
 
-/* Class = "NSTextFieldCell"; title = "If enabled, a remote connection is established to macpass.app"; ObjectID = "i3S-9b-Bpf"; */
-"i3S-9b-Bpf.title" = "Se abilitato, viene stabilita una connessione a macpass.app";
+/* Class = "NSTextFieldCell"; title = "If enabled, a remote connection is established to GitHub"; ObjectID = "i3S-9b-Bpf"; */
+"i3S-9b-Bpf.title" = "Se abilitato, viene stabilita una connessione a GitHub";
 
 /* Class = "NSTextFieldCell"; title = "Plugin Settings Info"; ObjectID = "OOr-SW-jZb"; */
 "OOr-SW-jZb.title" = "Informazioni riguardo impostazioni plugin";
