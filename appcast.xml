@@ -4,14 +4,14 @@
     <title>MacPass (stepankandrushin/MacPass)</title>
     <link>https://github.com/stepankandrushin/MacPass</link>
     <item>
-      <title>MacPass 0.8.3.2</title>
-      <pubDate>Fri, 23 Oct 2026 11:02:19 +0000</pubDate>
-      <sparkle:version>26990</sparkle:version>
-      <sparkle:shortVersionString>0.8.3.2</sparkle:shortVersionString>
+      <title>MacPass 0.8.3.3</title>
+      <pubDate>Fri, 23 Oct 2026 14:15:48 +0000</pubDate>
+      <sparkle:version>27070</sparkle:version>
+      <sparkle:shortVersionString>0.8.3.3</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>12.0</sparkle:minimumSystemVersion>
       <sparkle:fullReleaseNotesLink>https://github.com/stepankandrushin/MacPass/releases</sparkle:fullReleaseNotesLink>
-      <description><![CDATA[<p>Changes since 0.8.3.1:</p><ul><li>Point the README to the fork's releases; tolerate Pages already on</li><li>Run Auto-Type with Accessibility alone, without Screen Recording</li></ul>]]></description>
-      <enclosure url="https://github.com/stepankandrushin/MacPass/releases/download/0.8.3.2/MacPass-0.8.3.2.dmg" type="application/octet-stream" sparkle:edSignature="YCAKmDrJoTJ+Mo4ytiFHJ0OK0+ztMeloxB32+Jd02yo/qrg9yucpB9iFfnAphlFntkpDwZYeUR5Kr75bpQnVCQ==" length="6417353"/>
+      <description><![CDATA[<p>Changes since 0.8.3.2:</p><ul><li>History: Auto-Type without Screen Recording, 0.8.3.2</li><li>Stretch the toolbar search field to the Lock button again</li><li>History: toolbar search field to the Lock button</li><li>History: toolbar search field drag and full-screen tests</li><li>Point Help and the About box at the fork's repository</li><li>Drop links to macpass.app; fetch the plugin list from the fork's repository</li><li>README: don't link macpass.app</li><li>History: repo website setting cleared</li></ul>]]></description>
+      <enclosure url="https://github.com/stepankandrushin/MacPass/releases/download/0.8.3.3/MacPass-0.8.3.3.dmg" type="application/octet-stream" sparkle:edSignature="KQl9L6IPhPlKEBBAuH+yFT1lEl3+ZQPVdBj23YkDrkMW49DrU2CbZB0s+WZ09pMR7CafQEkTGZ4LVSpcK60iAg==" length="6420390"/>
     </item>
   </channel>
 </rss>
