@@ -31,7 +31,13 @@ nothing) and deleted afterwards; LastDatabasePath was put back to file:///Users/
   field ends 8 pt before Lock (199 pt at 900, 827 pt at 1547). At 800 pt and less, Lock and Inspector go into the
   overflow menu with the field at its 140 pt minimum, as the short field would at about the same width.
 - UseUnifiedToolbar off (expanded toolbar): field 938 pt, to Lock.
-- Not tried: dragging the window edge with the mouse (the owner was at the desk), toolbar customization, full screen,
-  macOS 11 to 26.
+- Later, after a rebuild: the window's right edge dragged with real CGEvents (60 steps, 15 ms apart) to 918, 518,
+  1018, 1568 and back to 1391 pt wide: the field ends 8 pt before Lock each time (207, 307, 857, 680 pt); at 518 pt
+  the items go into the overflow menu and all come back on widening. Full screen: the field runs to Lock.
+- Not tried: toolbar customization, macOS 11 to 26.
+
+The owner then said a1 is mainly a development machine, so the mouse can be used for tests any time, and that
+AllowScreenshots should stay on; it was not set in either MacPass domain on a1, so it was written for
+io.github.stepankandrushin.MacPass and left on (noted in dotfiles claude/machines/a1.md).
 
 Before and after screenshots went to the owner through notify-owner. Not released, as asked.
