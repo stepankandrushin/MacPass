@@ -4,14 +4,14 @@
     <title>MacPass (stepankandrushin/MacPass)</title>
     <link>https://github.com/stepankandrushin/MacPass</link>
     <item>
-      <title>MacPass 0.8.3.3</title>
-      <pubDate>Fri, 23 Oct 2026 14:15:48 +0000</pubDate>
-      <sparkle:version>27070</sparkle:version>
-      <sparkle:shortVersionString>0.8.3.3</sparkle:shortVersionString>
+      <title>MacPass 0.8.3.4</title>
+      <pubDate>Tue, 03 Nov 2026 15:06:50 +0000</pubDate>
+      <sparkle:version>27100</sparkle:version>
+      <sparkle:shortVersionString>0.8.3.4</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>12.0</sparkle:minimumSystemVersion>
       <sparkle:fullReleaseNotesLink>https://github.com/stepankandrushin/MacPass/releases</sparkle:fullReleaseNotesLink>
-      <description><![CDATA[<p>Changes since 0.8.3.2:</p><ul><li>History: Auto-Type without Screen Recording, 0.8.3.2</li><li>Stretch the toolbar search field to the Lock button again</li><li>History: toolbar search field to the Lock button</li><li>History: toolbar search field drag and full-screen tests</li><li>Point Help and the About box at the fork's repository</li><li>Drop links to macpass.app; fetch the plugin list from the fork's repository</li><li>README: don't link macpass.app</li><li>History: repo website setting cleared</li></ul>]]></description>
-      <enclosure url="https://github.com/stepankandrushin/MacPass/releases/download/0.8.3.3/MacPass-0.8.3.3.dmg" type="application/octet-stream" sparkle:edSignature="KQl9L6IPhPlKEBBAuH+yFT1lEl3+ZQPVdBj23YkDrkMW49DrU2CbZB0s+WZ09pMR7CafQEkTGZ4LVSpcK60iAg==" length="6420390"/>
+      <description><![CDATA[<p>Changes since 0.8.3.3:</p><ul><li>History: release 0.8.3.3</li><li>Merge another Mac's save of an open database without asking or sending it back</li><li>History: merging saves of a database open on several Macs</li></ul>]]></description>
+      <enclosure url="https://github.com/stepankandrushin/MacPass/releases/download/0.8.3.4/MacPass-0.8.3.4.dmg" type="application/octet-stream" sparkle:edSignature="pgb1a3jfMb88k/kzHo1wKk91QU7Qd3Wvs9T/CEtUK9Bf2xMe+bW2l/ap1urkVkkKZlqrDeZlx1UoV+TV6RyDBQ==" length="6439587"/>
     </item>
   </channel>
 </rss>
