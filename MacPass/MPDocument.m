@@ -84,7 +84,86 @@ NSString *const MPDocumentGroupKey                            = @"MPDocumentGrou
 
 @property (atomic, assign) BOOL lockedForFileChange;
 
+/* The modification date of the file when the user chose to keep their version over it: a save writes over that
+ version without merging it, and merges any later one. */
+@property (nonatomic, strong) NSDate *keptMineOverDate;
+/* Whether all unsaved changes came from merges, not from the user: a merge after which the file holds everything
+ the document does may then mark the document clean again. */
+@property (nonatomic, assign) BOOL editedByMergesOnly;
+@property (nonatomic, assign) BOOL merging;
+/* Conflict copies of this database merged into the document, by URL, with their modification date then. Each goes
+ to the Trash once a save has written what it held, or once the file is found to hold all of it. */
+@property (nonatomic, strong) NSMutableDictionary<NSURL *, NSDate *> *mergedConflictCopies;
+
 @end
+
+/* KeePassKit's merge compares nodes with this method and option, declared in its private KPKNode_Private.h, and a
+ file holds times in whole seconds, as this method of its private KPKTimeInfo_Private.h leaves them. */
+@interface KPKNode (MPMergeComparison)
+- (KPKComparsionResult)_compareToNode:(KPKNode *)aNode options:(NSUInteger)options;
+@end
+@interface KPKTimeInfo (MPMergeComparison)
+- (void)_reducePrecicionToSeconds;
+@end
+static const NSUInteger MPNodeCompareOptionIgnoreAccessDate = 1 << 0;
+
+/* Leaves the times of a version of a database as a save writes them. An entry made here has them to the fraction
+ of a second until the database is read again: a merge would take it for newer than the same entry in the file and
+ give it a history item, and it would never match what the file holds. */
+static void MPReduceTimesToSeconds(KPKTree *tree) {
+  if(nil == tree.root) {
+    return;
+  }
+  NSMutableArray<KPKNode *> *nodes = [NSMutableArray arrayWithObject:tree.root];
+  [nodes addObjectsFromArray:tree.allGroups];
+  [nodes addObjectsFromArray:tree.allEntries];
+  for(KPKNode *node in nodes) {
+    [node.timeInfo _reducePrecicionToSeconds];
+    for(KPKEntry *version in node.asEntry.history) {
+      [version.timeInfo _reducePrecicionToSeconds];
+    }
+  }
+}
+
+static KPKTree *MPTreeAsSaved(KPKTree *tree) {
+  KPKTree *copy = [tree copy];
+  MPReduceTimesToSeconds(copy);
+  return copy;
+}
+
+/* Whether two versions of a database, each as MPTreeAsSaved gives it, hold the same groups and entries, histories
+ included, and the same deletions. Access times are left out: using an entry changes them without marking the
+ document edited. */
+static BOOL MPTreesHoldTheSame(KPKTree *one, KPKTree *other) {
+  if(nil == one.root || nil == other.root) {
+    return one.root == other.root;
+  }
+  if(KPKComparsionEqual != [one.root _compareToNode:other.root options:MPNodeCompareOptionIgnoreAccessDate]) {
+    return NO;
+  }
+  return [[NSSet setWithArray:one.deletedObjects.allKeys] isEqualToSet:[NSSet setWithArray:other.deletedObjects.allKeys]];
+}
+
+/* Whether name is a sync tool's conflict copy of the file named original: `pass (conflict host 2026-11-03).kdbx`,
+ `pass (conflicted copy 2026-11-03 101010).kdbx`, `pass.sync-conflict-20261103-101010-ABCDEFG.kdbx` or
+ `pass_conflict-20261103-101010.kdbx` for `pass.kdbx`. */
+static BOOL MPIsConflictCopyName(NSString *name, NSString *original) {
+  name = name.precomposedStringWithCanonicalMapping;
+  original = original.precomposedStringWithCanonicalMapping;
+  if([name isEqualToString:original] || NSOrderedSame != [name.pathExtension compare:original.pathExtension options:NSCaseInsensitiveSearch]) {
+    return NO;
+  }
+  NSString *stem = original.stringByDeletingPathExtension;
+  NSString *otherStem = name.stringByDeletingPathExtension;
+  if(otherStem.length <= stem.length || ![otherStem hasPrefix:stem]) {
+    return NO;
+  }
+  NSString *tag = [otherStem substringFromIndex:stem.length];
+  if([tag hasPrefix:@" ("] && [tag hasSuffix:@")"]) {
+    return [tag rangeOfString:@"conflict" options:NSCaseInsensitiveSearch].location != NSNotFound;
+  }
+  return [tag hasPrefix:@".sync-conflict-"] || [tag hasPrefix:@"_conflict-"];
+}
 
 @implementation MPDocument
 
@@ -340,10 +419,16 @@ NSString *const MPDocumentGroupKey                            = @"MPDocumentGrou
   }
   else if(strategy == MPFileChangeStrategyUseOther) {
     /* dispatch? */
-    
+
     [self revertToContentsOfURL:self.fileURL ofType:self.fileType error:nil];
   }
-  // else do nothing!
+  else if(strategy == MPFileChangeStrategyKeepMine) {
+    self.keptMineOverDate = [self _modificationDateOnDisk];
+  }
+}
+
+- (NSDate *)_modificationDateOnDisk {
+  return [NSFileManager.defaultManager attributesOfItemAtPath:self.fileURL.path error:nil].fileModificationDate;
 }
 
 - (void)importTree:(KPKTree *)tree {
@@ -397,22 +482,27 @@ NSString *const MPDocumentGroupKey                            = @"MPDocumentGrou
 - (void)_mergeWithContentsFromURL:(NSURL *)url key:(KPKCompositeKey *)key options:(KPKSynchronizationOptions)options {
   NSError *error;
   KPKTree *otherTree;
-  
+  BOOL isOwnFile = [self _isOwnFile:url];
+  /* read before the content, so a change after the read still differs from it and is merged in turn */
+  NSDate *modificationDate = [NSFileManager.defaultManager attributesOfItemAtPath:url.path error:nil].fileModificationDate;
+
   if(key) {
     otherTree = [[KPKTree alloc] initWithContentsOfUrl:url key:key error:&error];
   }
-  
+
   if(otherTree) {
-    [self.tree synchronizeWithTree:otherTree mode:KPKSynchronizationModeSynchronize options:options];
     /* the key might have changed so update ours! */
-    [self updateChangeCount:NSChangeDone]; // Register change since we did mark document as edited
-    NSDictionary *attributes = [NSFileManager.defaultManager attributesOfItemAtPath:url.path error:nil];
-    self.fileModificationDate = attributes.fileModificationDate; // Update to date on disk to prevent alert pop up on save!
-    NSUserNotification *notification = [[NSUserNotification alloc] init];
-    notification.title = NSApp.applicationName;
-    notification.informativeText = NSLocalizedString(@"AUTO_MERGE_NOTIFICATION_TEXT", @"Sucessfully merged external changes");
-    notification.deliveryDate = NSDate.date;
-    [NSUserNotificationCenter.defaultUserNotificationCenter scheduleNotification:notification];
+    if(isOwnFile && key != self.compositeKey) {
+      self.compositeKey = key;
+    }
+    BOOL changed = [self _mergeTree:otherTree isOwnFile:isOwnFile options:options];
+    if(isOwnFile) {
+      self.fileModificationDate = modificationDate; // Update to date on disk to prevent alert pop up on save!
+      [self _mergeConflictCopies];
+    }
+    if(changed) {
+      [self _notifyOfMerge:NSLocalizedString(@"AUTO_MERGE_NOTIFICATION_TEXT", @"Sucessfully merged external changes")];
+    }
   }
   else {
     if(!key || error.code == KPKErrorPasswordAndOrKeyfileWrong) {
@@ -442,6 +532,165 @@ NSString *const MPDocumentGroupKey                            = @"MPDocumentGrou
       }];
     }
   }
+}
+
+#pragma mark Changes made elsewhere
+- (BOOL)_isOwnFile:(NSURL *)url {
+  return nil != self.fileURL && [url.URLByStandardizingPath.path isEqualToString:self.fileURL.URLByStandardizingPath.path];
+}
+
+- (BOOL)_isKdbx {
+  return KPKDatabaseFormatKdbx == [self.class formatForFileType:self.fileType];
+}
+
+/* Merges another version of this database into the document and returns whether that changed the document. After a
+ merge of the document's own file, the document is clean if it had no changes of the user's and the file now holds all
+ it does; otherwise it is edited, so that what the file lacks is saved. A merge that brings nothing new thus saves
+ nothing, and two devices that both have the database open do not send it back and forth. */
+- (BOOL)_mergeTree:(KPKTree *)otherTree isOwnFile:(BOOL)isOwnFile options:(KPKSynchronizationOptions)options {
+  BOOL mayBeClean = !self.documentEdited || self.editedByMergesOnly;
+  /* a merge is not undoable, and is not the user's change */
+  NSUndoManager *undoManager = self.undoManager;
+  [undoManager disableUndoRegistration];
+  MPReduceTimesToSeconds(self.tree);
+  KPKTree *before = MPTreeAsSaved(self.tree);
+  /* the merge pushes history onto the other tree's entries, so the file's version is kept apart first */
+  KPKTree *fileVersion = isOwnFile ? MPTreeAsSaved(otherTree) : nil;
+  [self.tree synchronizeWithTree:otherTree mode:KPKSynchronizationModeSynchronize options:options];
+  if(!undoManager.isUndoRegistrationEnabled) {
+    [undoManager enableUndoRegistration]; // the merge's removeAllActions may have done it
+  }
+  KPKTree *after = MPTreeAsSaved(self.tree);
+  BOOL changed = !MPTreesHoldTheSame(before, after);
+  self.merging = YES;
+  if(isOwnFile && mayBeClean && MPTreesHoldTheSame(after, fileVersion)) {
+    [self updateChangeCount:NSChangeCleared];
+    self.editedByMergesOnly = NO;
+    /* what the conflict copies merged so far held is in the file now */
+    [self _trashConflictCopies:[self.mergedConflictCopies copy]];
+  }
+  else if(changed || (isOwnFile && mayBeClean)) {
+    [self updateChangeCount:NSChangeDone];
+    self.editedByMergesOnly = mayBeClean;
+  }
+  self.merging = NO;
+  return changed;
+}
+
+- (void)_notifyOfMerge:(NSString *)text {
+  NSUserNotification *notification = [[NSUserNotification alloc] init];
+  notification.title = NSApp.applicationName;
+  notification.informativeText = text;
+  notification.deliveryDate = NSDate.date;
+  [NSUserNotificationCenter.defaultUserNotificationCenter scheduleNotification:notification];
+}
+
+- (BOOL)_fileOnDiskChanged {
+  NSDate *onDisk = [self _modificationDateOnDisk];
+  return nil != onDisk && (nil == self.fileModificationDate || NSOrderedSame != [onDisk compare:self.fileModificationDate]);
+}
+
+/* Merges what the file holds and the document does not, when the file changed and nobody chose to write over that
+ version, and then the conflict copies beside it: a change made elsewhere that this document was not told of, or one
+ that a question about it is still waiting on, is not written over. */
+- (void)_mergeChangesOnDisk {
+  if(self.encrypted || nil == self.tree || nil == self.fileURL || !self.compositeKey.hasKeys || ![self _isKdbx]) {
+    return;
+  }
+  NSDate *onDisk = [self _modificationDateOnDisk];
+  BOOL keptMine = nil != onDisk && nil != self.keptMineOverDate && NSOrderedSame == [onDisk compare:self.keptMineOverDate];
+  if([self _fileOnDiskChanged] && !keptMine) {
+    KPKTree *fileTree = [[KPKTree alloc] initWithContentsOfUrl:self.fileURL key:self.compositeKey error:nil];
+    if(nil != fileTree) {
+      if([self _mergeTree:fileTree isOwnFile:YES options:0]) {
+        [self _notifyOfMerge:NSLocalizedString(@"AUTO_MERGE_NOTIFICATION_TEXT", @"Sucessfully merged external changes")];
+      }
+      self.fileModificationDate = onDisk;
+    }
+    /* a file this key does not open is left to NSDocument, which says it changed */
+  }
+  [self _mergeConflictCopies];
+}
+
+/* Merges each conflict copy a sync tool left beside the file that opens with this document's key, as a copy is the
+ version of another device that changed the database at the same time. A copy that adds nothing goes to the Trash at
+ once if the file holds all the document does; one that adds something, once a save has written it. A copy that
+ does not open with this key is left alone. */
+- (void)_mergeConflictCopies {
+  if(self.encrypted || nil == self.tree || nil == self.fileURL || !self.compositeKey.hasKeys || ![self _isKdbx]) {
+    return;
+  }
+  if(nil == self.mergedConflictCopies) {
+    self.mergedConflictCopies = [[NSMutableDictionary alloc] init];
+  }
+  NSString *name = self.fileURL.lastPathComponent;
+  NSArray<NSURL *> *siblings = [NSFileManager.defaultManager contentsOfDirectoryAtURL:self.fileURL.URLByDeletingLastPathComponent
+                                                          includingPropertiesForKeys:nil
+                                                                             options:NSDirectoryEnumerationSkipsHiddenFiles
+                                                                               error:nil];
+  for(NSURL *url in siblings) {
+    if(!MPIsConflictCopyName(url.lastPathComponent, name) || nil != self.mergedConflictCopies[url]) {
+      continue;
+    }
+    NSDate *modificationDate = [NSFileManager.defaultManager attributesOfItemAtPath:url.path error:nil].fileModificationDate;
+    KPKTree *copyTree = [[KPKTree alloc] initWithContentsOfUrl:url key:self.compositeKey error:nil];
+    if(nil == copyTree || nil == modificationDate) {
+      continue;
+    }
+    BOOL changed = [self _mergeTree:copyTree isOwnFile:NO options:0];
+    if(!changed && !self.documentEdited && ![self _fileOnDiskChanged]) {
+      [NSFileManager.defaultManager trashItemAtURL:url resultingItemURL:nil error:nil];
+      continue;
+    }
+    self.mergedConflictCopies[url] = modificationDate;
+    if(changed) {
+      NSString *format = NSLocalizedStringWithDefaultValue(@"MERGED_CONFLICT_COPY_NOTIFICATION_TEXT", nil, NSBundle.mainBundle,
+                                                           @"Merged the conflict copy %@. It goes to the Trash once the database is saved.",
+                                                           @"Notification after a sync tool's conflict copy of the open database was merged into it");
+      [self _notifyOfMerge:[NSString stringWithFormat:format, url.lastPathComponent]];
+    }
+  }
+}
+
+/* A copy changed since it was merged is merged again rather than trashed; one gone was trashed by another device. */
+- (void)_trashConflictCopies:(NSDictionary<NSURL *, NSDate *> *)copies {
+  for(NSURL *url in copies) {
+    NSDate *modificationDate = [NSFileManager.defaultManager attributesOfItemAtPath:url.path error:nil].fileModificationDate;
+    if(nil != modificationDate && NSOrderedSame == [modificationDate compare:copies[url]]) {
+      [NSFileManager.defaultManager trashItemAtURL:url resultingItemURL:nil error:nil];
+    }
+    [self.mergedConflictCopies removeObjectForKey:url];
+  }
+}
+
+- (void)updateChangeCount:(NSDocumentChangeType)change {
+  [super updateChangeCount:change];
+  NSDocumentChangeType kind = (NSDocumentChangeType)(change & ~(NSUInteger)NSChangeDiscardable);
+  if(!self.merging && (kind == NSChangeDone || kind == NSChangeUndone || kind == NSChangeRedone)) {
+    self.editedByMergesOnly = NO;
+  }
+}
+
+- (void)saveDocumentWithDelegate:(id)delegate didSaveSelector:(SEL)didSaveSelector contextInfo:(void *)contextInfo {
+  /* before NSDocument finds the file changed and offers to write over it */
+  [self _mergeChangesOnDisk];
+  [super saveDocumentWithDelegate:delegate didSaveSelector:didSaveSelector contextInfo:contextInfo];
+}
+
+- (void)saveToURL:(NSURL *)url ofType:(NSString *)typeName forSaveOperation:(NSSaveOperationType)saveOperation completionHandler:(void (^)(NSError * _Nullable))completionHandler {
+  BOOL overOwnFile = (saveOperation == NSSaveOperation || saveOperation == NSAutosaveInPlaceOperation) && [self _isOwnFile:url];
+  if(overOwnFile) {
+    [self _mergeChangesOnDisk]; // an autosave comes here directly
+  }
+  NSDictionary<NSURL *, NSDate *> *copies = overOwnFile ? [self.mergedConflictCopies copy] : nil;
+  [super saveToURL:url ofType:typeName forSaveOperation:saveOperation completionHandler:^(NSError * _Nullable errorOrNil) {
+    if(nil == errorOrNil && overOwnFile) {
+      self.editedByMergesOnly = NO;
+      self.keptMineOverDate = nil;
+      [self _trashConflictCopies:copies];
+    }
+    completionHandler(errorOrNil);
+  }];
 }
 
 #pragma mark Lock/Unlock/Decrypt
@@ -504,6 +753,10 @@ NSString *const MPDocumentGroupKey                            = @"MPDocumentGrou
     self.unlockCount += 1;
     [NSNotificationCenter.defaultCenter postNotificationName:MPDocumentDidUnlockDatabaseNotification object:self];
     [self _storeKeyURL:keyFileURL];
+    /* a change the locked database missed, and conflict copies a sync left beside it meanwhile */
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [self _mergeChangesOnDisk];
+    });
   }
   else {
     self.compositeKey = nil; // clear the key?

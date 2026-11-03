@@ -149,7 +149,7 @@ NSString *const kMPDepricatedSettingsKeyEntryTouchIdDatabaseEncryptedKeyFormat  
       kMPSettingsKeyPreventUniversalClipboard: @YES, // Disable Universal Clipboard by default
       kMPSettingsKeyOpenEmptyDatabaseOnLaunch: @NO,
       kMPSettingsKeyReopenLastDatabaseOnLaunch: @YES,
-      kMPSettingsKeyFileChangeStrategy: @(MPFileChangeStrategyAsk), // Ask what to do on a file change!
+      kMPSettingsKeyFileChangeStrategy: @(MPFileChangeStrategyMerge), // Merge a change made elsewhere, as a database another device syncs is changed all the time
       kMPSettingsKeyLockOnSleep: @YES,
       kMPSettingskeyLockOnLogout: @NO,
       kMPSettingskeyLockOnScreenSleep: @NO,
