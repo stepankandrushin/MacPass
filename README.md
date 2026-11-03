@@ -1,5 +1,5 @@
 > **This is a fork of [MacPass](https://github.com/MacPass/MacPass), the native macOS KeePass client by Michael Starke and the [MacPass contributors](https://github.com/MacPass/MacPass/graphs/contributors).**
-> Upstream sees few updates, so work continues here on the `main` branch. Each change is also offered upstream as a pull request. All credit for MacPass itself goes to its original authors. This fork is not affiliated with or endorsed by the MacPass project.
+> Upstream sees few updates, so work continues here on the `main` branch. All credit for MacPass itself goes to its original authors. This fork is not affiliated with or endorsed by the MacPass project.
 > **[Download the fork from its Releases page](https://github.com/stepankandrushin/MacPass/releases)**: signed with a Developer ID and notarized by Apple, for macOS 12 and later, and it updates itself from there. You can also [build it from source](#how-to-build). The [official releases](https://github.com/MacPass/MacPass/releases) do not have the changes below.
 
 ## What's different in this fork
