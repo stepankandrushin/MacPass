@@ -42,7 +42,8 @@
 }
 
 - (instancetype)init {
-  self = [self initWithString:nil flags:MPEntrySearchTitles|MPEntrySearchUsernames];
+  /* Without a stored filter, search everywhere (the "Everywhere" filter button) */
+  self = [self initWithString:nil flags:MPEntrySearchAllAttributes];
   return self;
 }
 

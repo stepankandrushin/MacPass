@@ -46,7 +46,7 @@ typedef NS_OPTIONS(NSUInteger, MPEntrySearchFlags) {
 /* Wrap search criteria to be able to store them */
 @interface MPEntrySearchContext : NSObject <NSSecureCoding,NSCopying>
 /**
- *  Returns a default search context initialized with sane values.
+ *  Returns the default search context: no search string, searching all attributes (the "Everywhere" filter).
  *
  *  @return The default search context
  */
