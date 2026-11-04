@@ -70,10 +70,22 @@
 }
 
 - (KPKEntry *)_add:(NSString *)title to:(KPKTree *)tree {
+  return [self _add:title toGroup:tree.root];
+}
+
+- (KPKEntry *)_add:(NSString *)title toGroup:(KPKGroup *)group {
   KPKEntry *entry = [[KPKEntry alloc] init];
   entry.title = title;
-  [entry addToGroup:tree.root];
+  [entry addToGroup:group];
   return entry;
+}
+
+/* A group below the root group, where a database keeps most of its entries. */
+- (KPKGroup *)_addGroup:(NSString *)title to:(KPKTree *)tree {
+  KPKGroup *group = [[KPKGroup alloc] init];
+  group.title = title;
+  [group addToGroup:tree.root];
+  return group;
 }
 
 - (BOOL)_tree:(KPKTree *)tree has:(NSString *)title {
@@ -96,6 +108,22 @@
 - (void)_save:(MPDocument *)document {
   XCTestExpectation *saved = [self expectationWithDescription:@"saved"];
   [document saveToURL:document.fileURL ofType:document.fileType forSaveOperation:NSSaveOperation completionHandler:^(NSError *error) {
+    XCTAssertNil(error);
+    [saved fulfill];
+  }];
+  [self waitForExpectationsWithTimeout:10 handler:nil];
+}
+
+/* Renames an entry as the inspector does, keeping the version before the change in its history. */
+- (void)_rename:(KPKEntry *)entry to:(NSString *)title {
+  [entry pushHistory];
+  entry.title = title;
+}
+
+/* As autosave writes a document in place. */
+- (void)_autosave:(MPDocument *)document {
+  XCTestExpectation *saved = [self expectationWithDescription:@"autosaved"];
+  [document saveToURL:document.fileURL ofType:document.fileType forSaveOperation:NSAutosaveInPlaceOperation completionHandler:^(NSError *error) {
     XCTAssertNil(error);
     [saved fulfill];
   }];
@@ -198,6 +226,108 @@
   XCTAssertTrue([self _tree:[self _read:url] has:@"Only in the copy"]);
   XCTAssertFalse([NSFileManager.defaultManager fileExistsAtPath:copy.path]);
   XCTAssertTrue([NSFileManager.defaultManager fileExistsAtPath:other.path]);
+}
+
+/* The same entry changed on two devices within seconds, as on 2026-11-03: this device saves its change, and a sync tool
+ then keeps that save beside the file as a conflict copy and puts the other device's earlier change of the entry in its
+ place. The merge keeps the later change, with the other in the entry's history. The file lacks that, so the document is
+ left for autosave to write, and the copy stays until a save has written what it held. The entry is in a group, as a
+ database keeps them: a change below the root group was taken for none, the document was left clean and the copy
+ trashed, so a close or a quit before the next save lost the change. */
+- (void)testAChangeToTheSameEntryElsewhereIsMergedAndSaved {
+  NSURL *url = [self _url:@"test.kdbx"];
+  NSURL *copy = [self _url:@"test (conflicted copy 2026-11-03 225911).kdbx"];
+  KPKTree *start = [[KPKTree alloc] initWithTemplateContents];
+  KPKEntry *seed = [self _add:@"seed" toGroup:[self _addGroup:@"Test" to:start]];
+  seed.timeInfo.modificationDate = [NSDate dateWithTimeIntervalSinceNow:-60];
+  [self _write:start to:url];
+  KPKTree *elsewhere = [self _read:url];
+  MPDocument *document = [self _open:url];
+
+  KPKEntry *theirs = [elsewhere.root entryForUUID:seed.uuid];
+  [self _rename:theirs to:@"same-pro"];
+  theirs.timeInfo.modificationDate = [NSDate dateWithTimeIntervalSinceNow:-3];
+  [self _rename:[document.tree.root entryForUUID:seed.uuid] to:@"same-a1"];
+  [document updateChangeCount:NSChangeDone];
+  [self _autosave:document];
+
+  XCTAssertTrue([NSFileManager.defaultManager moveItemAtURL:url toURL:copy error:nil]);
+  [self _write:elsewhere to:url];
+  [document mergeWithContentsFromURL:url key:document.compositeKey];
+  XCTAssertEqualObjects([document.tree.root entryForUUID:seed.uuid].title, @"same-a1", @"The later change is kept");
+  XCTAssertTrue(document.hasUnautosavedChanges, @"The file lacks the later change, so autosave has to write it");
+  XCTAssertTrue(document.documentEdited);
+  XCTAssertTrue([NSFileManager.defaultManager fileExistsAtPath:copy.path], @"Kept until a save has written what it held");
+
+  [self _autosave:document];
+  KPKEntry *saved = [[self _read:url].root entryForUUID:seed.uuid];
+  XCTAssertEqualObjects(saved.title, @"same-a1");
+  XCTAssertTrue([[saved.history valueForKey:@"title"] containsObject:@"same-pro"], @"The earlier change is in the history");
+  XCTAssertFalse([NSFileManager.defaultManager fileExistsAtPath:copy.path]);
+  XCTAssertFalse(document.documentEdited);
+}
+
+/* Another device with an old copy in memory writes it over the file, and what it lacks is in a group: the document is
+ edited, and its save puts it back. */
+- (void)testAFileWrittenOverWithAnOlderVersionGetsBackWhatItLostInAGroup {
+  NSURL *url = [self _url:@"test.kdbx"];
+  KPKTree *old = [[KPKTree alloc] initWithTemplateContents];
+  KPKGroup *group = [self _addGroup:@"Test" to:old];
+  KPKEntry *changed = [self _add:@"Changed later" toGroup:group];
+  changed.timeInfo.modificationDate = [NSDate dateWithTimeIntervalSinceNow:-60];
+  KPKTree *current = [old copy];
+  [self _add:@"Added later" toGroup:[current.root groupForUUID:group.uuid]];
+  KPKEntry *change = [current.root entryForUUID:changed.uuid];
+  [self _rename:change to:@"Changed"];
+  change.timeInfo.modificationDate = NSDate.date;
+  [self _write:current to:url];
+  MPDocument *document = [self _open:url];
+
+  [self _write:old to:url];
+  [document mergeWithContentsFromURL:url key:document.compositeKey];
+  XCTAssertTrue([self _tree:document.tree has:@"Added later"]);
+  XCTAssertEqualObjects([document.tree.root entryForUUID:changed.uuid].title, @"Changed");
+  XCTAssertTrue(document.hasUnautosavedChanges, @"What the file lost has to be saved again");
+  [self _autosave:document];
+  KPKTree *saved = [self _read:url];
+  XCTAssertTrue([self _tree:saved has:@"Added later"]);
+  XCTAssertEqualObjects([saved.root entryForUUID:changed.uuid].title, @"Changed");
+}
+
+/* Two devices changing entries in a group in turn, one of them the same entry: each is clean after merging the other's
+ save, so neither saves it again and sends it back. */
+- (void)testTwoDevicesTakeEachOthersChangesInAGroupWithoutSendingThemBack {
+  NSURL *here = [self _url:@"here.kdbx"];
+  NSURL *there = [self _url:@"there.kdbx"];
+  KPKTree *start = [[KPKTree alloc] initWithTemplateContents];
+  KPKGroup *group = [self _addGroup:@"Test" to:start];
+  KPKEntry *seed = [self _add:@"seed" toGroup:group];
+  seed.timeInfo.modificationDate = [NSDate dateWithTimeIntervalSinceNow:-60];
+  [self _write:start to:here];
+  [self _sync:here to:there];
+  MPDocument *mine = [self _open:here];
+  MPDocument *theirs = [self _open:there];
+
+  [self _add:@"Made here" toGroup:[mine.tree.root groupForUUID:group.uuid]];
+  [self _rename:[mine.tree.root entryForUUID:seed.uuid] to:@"Renamed here"];
+  [mine updateChangeCount:NSChangeDone];
+  [self _save:mine];
+  [self _sync:here to:there];
+  [theirs mergeWithContentsFromURL:there key:theirs.compositeKey];
+  XCTAssertTrue([self _tree:theirs.tree has:@"Made here"]);
+  XCTAssertEqualObjects([theirs.tree.root entryForUUID:seed.uuid].title, @"Renamed here");
+  XCTAssertFalse(theirs.documentEdited, @"A merge that brings only the other device's changes leaves nothing to save");
+
+  [NSThread sleepForTimeInterval:1.1]; // a later change than the last, in the whole seconds a file holds
+  [self _add:@"Made there" toGroup:[theirs.tree.root groupForUUID:group.uuid]];
+  [self _rename:[theirs.tree.root entryForUUID:seed.uuid] to:@"Renamed there"];
+  [theirs updateChangeCount:NSChangeDone];
+  [self _save:theirs];
+  [self _sync:there to:here];
+  [mine mergeWithContentsFromURL:here key:mine.compositeKey];
+  XCTAssertTrue([self _tree:mine.tree has:@"Made there"]);
+  XCTAssertEqualObjects([mine.tree.root entryForUUID:seed.uuid].title, @"Renamed there");
+  XCTAssertFalse(mine.documentEdited);
 }
 
 - (void)testCreateEmptyDocument {

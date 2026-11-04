@@ -97,15 +97,10 @@ NSString *const MPDocumentGroupKey                            = @"MPDocumentGrou
 
 @end
 
-/* KeePassKit's merge compares nodes with this method and option, declared in its private KPKNode_Private.h, and a
- file holds times in whole seconds, as this method of its private KPKTimeInfo_Private.h leaves them. */
-@interface KPKNode (MPMergeComparison)
-- (KPKComparsionResult)_compareToNode:(KPKNode *)aNode options:(NSUInteger)options;
-@end
+/* A file holds times in whole seconds, as this method of KeePassKit's private KPKTimeInfo_Private.h leaves them. */
 @interface KPKTimeInfo (MPMergeComparison)
 - (void)_reducePrecicionToSeconds;
 @end
-static const NSUInteger MPNodeCompareOptionIgnoreAccessDate = 1 << 0;
 
 /* Leaves the times of a version of a database as a save writes them. An entry made here has them to the fraction
  of a second until the database is read again: a merge would take it for newer than the same entry in the file and
@@ -131,14 +126,65 @@ static KPKTree *MPTreeAsSaved(KPKTree *tree) {
   return copy;
 }
 
-/* Whether two versions of a database, each as MPTreeAsSaved gives it, hold the same groups and entries, histories
- included, and the same deletions. Access times are left out: using an entry changes them without marking the
- document edited. */
+static BOOL MPSameDate(NSDate *date, NSDate *other) {
+  return date == other || (nil != date && nil != other && NSOrderedSame == [date compare:other]);
+}
+
+/* The older versions an entry keeps in its history, by the time each was made. */
+static NSArray<NSDate *> *MPHistoryVersions(KPKEntry *entry) {
+  NSMutableArray<NSDate *> *versions = [[NSMutableArray alloc] initWithCapacity:entry.history.count];
+  for(KPKEntry *version in entry.history) {
+    [versions addObject:version.timeInfo.modificationDate ?: NSDate.distantPast];
+  }
+  return [versions sortedArrayUsingSelector:@selector(compare:)];
+}
+
+/* Whether the nodes of one list and of another, matched by UUID, are the same nodes at the same versions: changed
+ and moved at the same times, and an entry with the same older versions in its history. */
+static BOOL MPNodesAtTheSameVersions(NSArray<KPKNode *> *nodes, NSArray<KPKNode *> *otherNodes) {
+  if(nodes.count != otherNodes.count) {
+    return NO;
+  }
+  NSMutableDictionary<NSUUID *, KPKNode *> *others = [[NSMutableDictionary alloc] initWithCapacity:otherNodes.count];
+  for(KPKNode *other in otherNodes) {
+    if(nil == other.uuid || nil != others[other.uuid]) {
+      return NO;
+    }
+    others[other.uuid] = other;
+  }
+  NSMutableSet<NSUUID *> *matched = [[NSMutableSet alloc] initWithCapacity:nodes.count];
+  for(KPKNode *node in nodes) {
+    KPKNode *other = nil == node.uuid ? nil : others[node.uuid];
+    if(nil == other || [matched containsObject:node.uuid]) {
+      return NO;
+    }
+    [matched addObject:node.uuid];
+    if(!MPSameDate(node.timeInfo.modificationDate, other.timeInfo.modificationDate)
+       || !MPSameDate(node.timeInfo.locationChanged, other.timeInfo.locationChanged)) {
+      return NO;
+    }
+    if(nil != node.asEntry && ![MPHistoryVersions(node.asEntry) isEqualToArray:MPHistoryVersions(other.asEntry)]) {
+      return NO;
+    }
+  }
+  return YES;
+}
+
+/* Whether two versions of a database, each as MPTreeAsSaved gives it, hold the same: the same groups and entries,
+ each at the same version, and the same deletions. A version is what KeePassKit's merge goes by: the time a node was
+ changed, the time it was moved, and the older versions an entry keeps; access times are left out, as using an entry
+ moves them on without marking the document edited. Two sides that differ within one version are
+ left as they are by a merge on either device, so writing one over the other would only start two devices saving it
+ back and forth, or write back over what another device changed without moving the time on, as KeePassKit does for
+ tags. KeePassKit's own comparison is not used: -[KPKGroup _compareToNode:options:] compares each subgroup with itself,
+ which took any difference below the root group for none, so a merge the file lacked was left unsaved. */
 static BOOL MPTreesHoldTheSame(KPKTree *one, KPKTree *other) {
   if(nil == one.root || nil == other.root) {
     return one.root == other.root;
   }
-  if(KPKComparsionEqual != [one.root _compareToNode:other.root options:MPNodeCompareOptionIgnoreAccessDate]) {
+  NSArray<KPKNode *> *groups = [@[one.root] arrayByAddingObjectsFromArray:one.allGroups];
+  NSArray<KPKNode *> *otherGroups = [@[other.root] arrayByAddingObjectsFromArray:other.allGroups];
+  if(!MPNodesAtTheSameVersions(groups, otherGroups) || !MPNodesAtTheSameVersions(one.allEntries, other.allEntries)) {
     return NO;
   }
   return [[NSSet setWithArray:one.deletedObjects.allKeys] isEqualToSet:[NSSet setWithArray:other.deletedObjects.allKeys]];
