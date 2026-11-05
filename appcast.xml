@@ -4,14 +4,14 @@
     <title>MacPass (stepankandrushin/MacPass)</title>
     <link>https://github.com/stepankandrushin/MacPass</link>
     <item>
-      <title>MacPass 0.8.3.4</title>
-      <pubDate>Tue, 03 Nov 2026 15:06:50 +0000</pubDate>
-      <sparkle:version>27100</sparkle:version>
-      <sparkle:shortVersionString>0.8.3.4</sparkle:shortVersionString>
+      <title>MacPass 0.8.3.5</title>
+      <pubDate>Thu, 05 Nov 2026 05:33:35 +0000</pubDate>
+      <sparkle:version>27170</sparkle:version>
+      <sparkle:shortVersionString>0.8.3.5</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>12.0</sparkle:minimumSystemVersion>
       <sparkle:fullReleaseNotesLink>https://github.com/stepankandrushin/MacPass/releases</sparkle:fullReleaseNotesLink>
-      <description><![CDATA[<p>Changes since 0.8.3.3:</p><ul><li>History: release 0.8.3.3</li><li>Merge another Mac's save of an open database without asking or sending it back</li><li>History: merging saves of a database open on several Macs</li></ul>]]></description>
-      <enclosure url="https://github.com/stepankandrushin/MacPass/releases/download/0.8.3.4/MacPass-0.8.3.4.dmg" type="application/octet-stream" sparkle:edSignature="pgb1a3jfMb88k/kzHo1wKk91QU7Qd3Wvs9T/CEtUK9Bf2xMe+bW2l/ap1urkVkkKZlqrDeZlx1UoV+TV6RyDBQ==" length="6439587"/>
+      <description><![CDATA[<p>Changes since 0.8.3.4:</p><ul><li>History: release 0.8.3.4, and the fork on pro</li><li>README: changes are no longer offered upstream</li><li>History: 0.8.3.4 on three Macs, a change to the same entry on two left unsaved</li><li>History: a1 runs the release 0.8.3.4, the Debug build lacked the Accessibility grant</li><li>Search looks everywhere by default</li><li>Save a merge whose change is in a group instead of taking it for none</li><li>History: a merge below the root group was taken for none, fixed, not released</li></ul>]]></description>
+      <enclosure url="https://github.com/stepankandrushin/MacPass/releases/download/0.8.3.5/MacPass-0.8.3.5.dmg" type="application/octet-stream" sparkle:edSignature="mPAj3Y8JYQRnLa+SHEHcPcFGWbS8Yq62yw+23a57mK9+1TYr7rvCsbmw5Okf5GfFElSJACBnfxVnvD/MSVajDQ==" length="6443721"/>
     </item>
   </channel>
 </rss>
