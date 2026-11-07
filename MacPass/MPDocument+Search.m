@@ -64,7 +64,8 @@ NSString *const kMPDocumentSearchResultsKey           = @"kMPDocumentSearchResul
     return; // We get called back!
   }
   MPDocumentWindowController *windowController = self.windowControllers.firstObject;
-  self.searchContext.searchString = windowController.searchField.stringValue;
+  /* Spaces, tabs and line breaks before and after the text are not searched for: "  Dynadot " finds "Dynadot" */
+  self.searchContext.searchString = [windowController.searchField.stringValue stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
   MPDocument __weak *weakSelf = self;
   dispatch_queue_t backgroundQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
   dispatch_async(backgroundQueue, ^{
