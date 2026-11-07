@@ -4,14 +4,14 @@
     <title>MacPass (stepankandrushin/MacPass)</title>
     <link>https://github.com/stepankandrushin/MacPass</link>
     <item>
-      <title>MacPass 0.8.3.5</title>
-      <pubDate>Thu, 05 Nov 2026 05:33:35 +0000</pubDate>
-      <sparkle:version>27170</sparkle:version>
-      <sparkle:shortVersionString>0.8.3.5</sparkle:shortVersionString>
+      <title>MacPass 0.8.3.6</title>
+      <pubDate>Sat, 07 Nov 2026 03:22:06 +0000</pubDate>
+      <sparkle:version>27190</sparkle:version>
+      <sparkle:shortVersionString>0.8.3.6</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>12.0</sparkle:minimumSystemVersion>
       <sparkle:fullReleaseNotesLink>https://github.com/stepankandrushin/MacPass/releases</sparkle:fullReleaseNotesLink>
-      <description><![CDATA[<p>Changes since 0.8.3.4:</p><ul><li>History: release 0.8.3.4, and the fork on pro</li><li>README: changes are no longer offered upstream</li><li>History: 0.8.3.4 on three Macs, a change to the same entry on two left unsaved</li><li>History: a1 runs the release 0.8.3.4, the Debug build lacked the Accessibility grant</li><li>Search looks everywhere by default</li><li>Save a merge whose change is in a group instead of taking it for none</li><li>History: a merge below the root group was taken for none, fixed, not released</li></ul>]]></description>
-      <enclosure url="https://github.com/stepankandrushin/MacPass/releases/download/0.8.3.5/MacPass-0.8.3.5.dmg" type="application/octet-stream" sparkle:edSignature="mPAj3Y8JYQRnLa+SHEHcPcFGWbS8Yq62yw+23a57mK9+1TYr7rvCsbmw5Okf5GfFElSJACBnfxVnvD/MSVajDQ==" length="6443721"/>
+      <description><![CDATA[<p>Changes since 0.8.3.5:</p><ul><li>History: 0.8.3.5 on a1 and pro, the same entry changed on two Macs is merged and saved</li><li>Search ignores spaces, tabs and line breaks around the text</li></ul>]]></description>
+      <enclosure url="https://github.com/stepankandrushin/MacPass/releases/download/0.8.3.6/MacPass-0.8.3.6.dmg" type="application/octet-stream" sparkle:edSignature="xP+LwtrBoIKC8zxIKMqNPJB7e+58B87J9ooU7vkyFVdH91uPbp01MbMPlltMyOpnO02ktTMyRelDxc9CUjYUAw==" length="6444504"/>
     </item>
   </channel>
 </rss>
