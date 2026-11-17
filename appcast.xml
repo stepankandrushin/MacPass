@@ -4,14 +4,14 @@
     <title>MacPass (stepankandrushin/MacPass)</title>
     <link>https://github.com/stepankandrushin/MacPass</link>
     <item>
-      <title>MacPass 0.8.3.6</title>
-      <pubDate>Sat, 07 Nov 2026 03:22:06 +0000</pubDate>
-      <sparkle:version>27190</sparkle:version>
-      <sparkle:shortVersionString>0.8.3.6</sparkle:shortVersionString>
+      <title>MacPass 0.8.3.7</title>
+      <pubDate>Tue, 17 Nov 2026 16:26:16 +0000</pubDate>
+      <sparkle:version>27220</sparkle:version>
+      <sparkle:shortVersionString>0.8.3.7</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>12.0</sparkle:minimumSystemVersion>
       <sparkle:fullReleaseNotesLink>https://github.com/stepankandrushin/MacPass/releases</sparkle:fullReleaseNotesLink>
-      <description><![CDATA[<p>Changes since 0.8.3.5:</p><ul><li>History: 0.8.3.5 on a1 and pro, the same entry changed on two Macs is merged and saved</li><li>Search ignores spaces, tabs and line breaks around the text</li></ul>]]></description>
-      <enclosure url="https://github.com/stepankandrushin/MacPass/releases/download/0.8.3.6/MacPass-0.8.3.6.dmg" type="application/octet-stream" sparkle:edSignature="xP+LwtrBoIKC8zxIKMqNPJB7e+58B87J9ooU7vkyFVdH91uPbp01MbMPlltMyOpnO02ktTMyRelDxc9CUjYUAw==" length="6444504"/>
+      <description><![CDATA[<p>Changes since 0.8.3.6:</p><ul><li>History: release 0.8.3.6, search ignores spaces around the text</li><li>Ignore .pi/, the pi agent's input history</li><li>Let copied entries go: KeePassKit's expiration timers kept them and made merges hang MacPass</li></ul>]]></description>
+      <enclosure url="https://github.com/stepankandrushin/MacPass/releases/download/0.8.3.7/MacPass-0.8.3.7.dmg" type="application/octet-stream" sparkle:edSignature="sTD7daLo8zUDh3wEUmHmCXZph7xmkVCt323ICAmU1pS47Dfh7erfWkevZnAnylcSEfEb3uCNobMmy+ivhpOxCw==" length="6443388"/>
     </item>
   </channel>
 </rss>
