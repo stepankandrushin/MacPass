@@ -118,6 +118,7 @@
 		4C45FB23178E09ED0010007D /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 4C45FB21178E09ED0010007D /* InfoPlist.strings */; };
 		4C45FB2D178E0BCB0010007D /* MPDatabaseLoading.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C45FB2C178E0BCB0010007D /* MPDatabaseLoading.m */; };
 		4C45FB30178E0CE20010007D /* MPTestDocument.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C45FB2F178E0CE20010007D /* MPTestDocument.m */; };
+		A3E7D1C32F6B4E0100A1B2C3 /* MPTestExpirationTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = A3E7D1C22F6B4E0100A1B2C3 /* MPTestExpirationTimer.m */; };
 		4C46B88517063A070046109A /* NSString+MPPasswordCreation.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C46B88417063A070046109A /* NSString+MPPasswordCreation.m */; };
 		4C473A8718AFD85B0073FD2E /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C473A8518AFD7250073FD2E /* XCTest.framework */; };
 		4C49CFD624252389004092E7 /* KPKEntry+MPTags.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C49CFD524252389004092E7 /* KPKEntry+MPTags.m */; };
@@ -258,6 +259,7 @@
 		4CC59C2721AF0893005E8D6B /* MPPathControl.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CC59C2621AF0893005E8D6B /* MPPathControl.m */; };
 		4CC663E7216F7A7100E33965 /* MPPluginRepositoryBrowserViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CC663E5216F7A7100E33965 /* MPPluginRepositoryBrowserViewController.m */; };
 		4CC6DB7A17D23719002C6091 /* KPKNode+IconImage.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CC6DB7917D23719002C6091 /* KPKNode+IconImage.m */; };
+		A3E7D1C12F6B4E0100A1B2C3 /* KPKTimeInfo+MPExpirationTimer.m in Sources */ = {isa = PBXBuildFile; fileRef = A3E7D1C02F6B4E0100A1B2C3 /* KPKTimeInfo+MPExpirationTimer.m */; };
 		4CCA8E9B18D91ED9001A6754 /* Quartz.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CCA8E9A18D91ED9001A6754 /* Quartz.framework */; };
 		4CCCE8011D75CA48006AA951 /* MPArrayController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CCCE8001D75CA48006AA951 /* MPArrayController.m */; };
 		4CCEDE2A179F203B008402BE /* MPOutlineView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4CCEDE29179F203B008402BE /* MPOutlineView.m */; };
@@ -565,6 +567,7 @@
 		4C45FB27178E09ED0010007D /* MacPassTests-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MacPassTests-Prefix.pch"; sourceTree = "<group>"; };
 		4C45FB2C178E0BCB0010007D /* MPDatabaseLoading.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPDatabaseLoading.m; sourceTree = "<group>"; };
 		4C45FB2F178E0CE20010007D /* MPTestDocument.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPTestDocument.m; sourceTree = "<group>"; };
+		A3E7D1C22F6B4E0100A1B2C3 /* MPTestExpirationTimer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MPTestExpirationTimer.m; sourceTree = "<group>"; };
 		4C46B88317063A070046109A /* NSString+MPPasswordCreation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+MPPasswordCreation.h"; sourceTree = "<group>"; };
 		4C46B88417063A070046109A /* NSString+MPPasswordCreation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+MPPasswordCreation.m"; sourceTree = "<group>"; };
 		4C47090727184AC8003777EB /* MPInspectorEditor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MPInspectorEditor.h; sourceTree = "<group>"; };
@@ -853,6 +856,7 @@
 		4CC663E5216F7A7100E33965 /* MPPluginRepositoryBrowserViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MPPluginRepositoryBrowserViewController.m; sourceTree = "<group>"; };
 		4CC6DB7817D23719002C6091 /* KPKNode+IconImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "KPKNode+IconImage.h"; sourceTree = "<group>"; };
 		4CC6DB7917D23719002C6091 /* KPKNode+IconImage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "KPKNode+IconImage.m"; sourceTree = "<group>"; };
+		A3E7D1C02F6B4E0100A1B2C3 /* KPKTimeInfo+MPExpirationTimer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "KPKTimeInfo+MPExpirationTimer.m"; sourceTree = "<group>"; };
 		4CCA7EEC1797866F00B0B55E /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/GeneralPreferences.strings; sourceTree = "<group>"; };
 		4CCA8E9A18D91ED9001A6754 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
 		4CCCE7FF1D75CA48006AA951 /* MPArrayController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPArrayController.h; sourceTree = "<group>"; };
@@ -1301,6 +1305,7 @@
 				4CC6DB7917D23719002C6091 /* KPKNode+IconImage.m */,
 				4CB33F841EAF54A000C9341E /* KPKNode+MPIsHistory.h */,
 				4CB33F851EAF54A000C9341E /* KPKNode+MPIsHistory.m */,
+				A3E7D1C02F6B4E0100A1B2C3 /* KPKTimeInfo+MPExpirationTimer.m */,
 				4CF5BE6B1BF33E3000048505 /* NSApplication+MPAdditions.h */,
 				4CF5BE6C1BF33E3000048505 /* NSApplication+MPAdditions.m */,
 				4C10412A178CDD44001B5239 /* NSDate+Humanized.h */,
@@ -1458,6 +1463,7 @@
 				4C8DEAA11C314D2C00D24C32 /* MPTestAutotypeDelay.m */,
 				4C45FB2C178E0BCB0010007D /* MPDatabaseLoading.m */,
 				4C45FB2F178E0CE20010007D /* MPTestDocument.m */,
+				A3E7D1C22F6B4E0100A1B2C3 /* MPTestExpirationTimer.m */,
 				4C6BC65F1A36717E00BDDF3D /* MPDatabaseSearch.m */,
 				4C8030491E2FBAA300133E4C /* MPTestKeyMapper.m */,
 				4C8F0C721FCF1B7A00BE157F /* MPTestPickcharsParser.m */,
@@ -2263,6 +2269,7 @@
 				4C8F0C731FCF1B7A00BE157F /* MPTestPickcharsParser.m in Sources */,
 				4C642AE92195E3B700689431 /* MPTestCustomAttributeGetter.m in Sources */,
 				4C45FB30178E0CE20010007D /* MPTestDocument.m in Sources */,
+				A3E7D1C32F6B4E0100A1B2C3 /* MPTestExpirationTimer.m in Sources */,
 				4C6BC6601A36717E00BDDF3D /* MPDatabaseSearch.m in Sources */,
 				4C10207F1B750E2F00BFCD59 /* MPTestAutotype.m in Sources */,
 				4C80304A1E2FBAA300133E4C /* MPTestKeyMapper.m in Sources */,
@@ -2427,6 +2434,7 @@
 				4CE501341BBC47F500FB819D /* MPTagsTokenFieldDelegate.m in Sources */,
 				4C2892A8257103F9003C7732 /* MPTOTPViewController.m in Sources */,
 				4CC6DB7A17D23719002C6091 /* KPKNode+IconImage.m in Sources */,
+				A3E7D1C12F6B4E0100A1B2C3 /* KPKTimeInfo+MPExpirationTimer.m in Sources */,
 				4C15B74618BCA3B1003F8008 /* MPDocument+Search.m in Sources */,
 				4CEED1C617D7BD0E007180F1 /* NSError+Messages.m in Sources */,
 				4C00E33817D8FA3500F37192 /* DDHotKeyCenter.m in Sources */,
